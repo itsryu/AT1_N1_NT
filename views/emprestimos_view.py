@@ -6,6 +6,7 @@ from models.emprestimo import Emprestimo
 from controllers.emprestimos_controller import EmprestimosController
 from controllers.livros_controller import LivrosController
 from controllers.usuarios_controller import UsuariosController
+from utils.helpers import formatar_data
 from views.base_view import BaseView
 
 
@@ -278,7 +279,7 @@ class EmprestimosView(BaseView):
                     livros.get(emp.ISBN, "Desconhecido"),
                     emp.UserID,
                     usuarios.get(emp.UserID, "Desconhecido"),
-                    emp.DataEmprestimo,
+                    formatar_data(emp.DataEmprestimo),
                     "Ativo" if not emp.DataDevolucao else "Devolvido",
                 ),
             )
@@ -346,8 +347,8 @@ class EmprestimosView(BaseView):
                     livros.get(emp.ISBN, "Desconhecido"),
                     emp.UserID,
                     usuarios.get(emp.UserID, "Desconhecido"),
-                    emp.DataEmprestimo,
-                    emp.DataDevolucao if emp.DataDevolucao else "N/A",
+                    formatar_data(emp.DataEmprestimo),
+                    formatar_data(emp.DataDevolucao) if emp.DataDevolucao else "N/A",
                 ),
             )
 

@@ -21,7 +21,7 @@ class EstatisticasController:
         tipos = defaultdict(int)
         
         for emp in self.emprestimos_ctrl.list_all():
-            tipo = usuarios.get(emp.UserID, 'Desconhecido')
+            tipo = usuarios.get(emp.UserID, 'Visitante')
             tipos[tipo] += 1
             
         return dict(sorted(tipos.items(), key=lambda item: item[1], reverse=True))
@@ -34,7 +34,7 @@ class EstatisticasController:
             contagem[emp.ISBN] += 1
         
         return sorted(
-            [(livros.get(isbn, 'Desconhecido'), isbn, count) 
+            [(livros.get(isbn, 'Visitante'), isbn, count) 
              for isbn, count in contagem.items()],
             key=lambda x: x[2], reverse=True
         )[:limit]
