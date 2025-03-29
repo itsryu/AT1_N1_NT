@@ -17,15 +17,17 @@ class UsuariosView:
         main_frame = tk.Frame(self.root, bg="#f0f0f0")
         main_frame.pack(expand=True, fill='both', padx=20, pady=20)
         
+        # Frame para cadastro
         frame_cadastro = tk.Frame(main_frame, bg="#f0f0f0")
         frame_cadastro.pack(fill='x', pady=10)
         
         tk.Label(frame_cadastro, text="Cadastro de Usuários", font=('Arial', 14), bg="#f0f0f0").pack(pady=10)
         
+        # Campos de entrada
         fields = ['Nome', 'Email', 'ID', 'Tipo']
         self.entries = {}
         
-        for field in fields[:3]:
+        for field in fields[:3]:  # Nome, Email, ID
             row_frame = tk.Frame(frame_cadastro, bg="#f0f0f0")
             row_frame.pack(fill='x', pady=5)
             
@@ -34,6 +36,7 @@ class UsuariosView:
             entry.pack(side='left', padx=5)
             self.entries[field] = entry
         
+        # Tipo de usuário (combobox)
         row_frame = tk.Frame(frame_cadastro, bg="#f0f0f0")
         row_frame.pack(fill='x', pady=5)
         
@@ -42,7 +45,6 @@ class UsuariosView:
         cb_tipo = ttk.Combobox(row_frame, textvariable=self.tipo_var, 
                               values=['aluno', 'professor', 'visitante'], width=37)
         cb_tipo.pack(side='left', padx=5)
-        self.entries['Tipo'] = cb_tipo
         
         btn_frame = tk.Frame(frame_cadastro, bg="#f0f0f0")
         btn_frame.pack(fill='x', pady=10)
@@ -52,6 +54,7 @@ class UsuariosView:
         tk.Button(btn_frame, text="Limpar", command=self.limpar_campos,
                  bg="#607D8B", fg="white", width=15).pack(side='left', padx=5)
         
+        # Frame para busca
         frame_busca = tk.Frame(main_frame, bg="#f0f0f0")
         frame_busca.pack(fill='x', pady=10)
         
@@ -64,6 +67,7 @@ class UsuariosView:
         tk.Button(search_frame, text="Buscar", command=self.buscar_usuarios,
                  bg="#4CAF50", fg="white").pack(side='left', padx=5)
         
+        # Treeview para exibição
         self.tree = ttk.Treeview(main_frame, columns=fields, show='headings', selectmode='browse')
         self.tree.pack(expand=True, fill='both', padx=10, pady=10)
         
@@ -71,15 +75,17 @@ class UsuariosView:
             self.tree.heading(field, text=field)
             self.tree.column(field, width=120)
         
+        # Botão voltar
         tk.Button(main_frame, text="Voltar ao Menu", command=self.voltar_menu,
                  bg="#F44336", fg="white", width=20).pack(pady=10)
         
         self.carregar_usuarios()
 
     def salvar_usuario(self):
+        # Corrigido: usando os nomes de parâmetros consistentes com o model
         usuario_data = {
-            'Nome': self.entries['Nome'].get(),
-            'Email': self.entries['Email'].get(),
+            'nome': self.entries['Nome'].get(),
+            'email': self.entries['Email'].get(),
             'id_usuario': self.entries['ID'].get(),
             'tipo': self.tipo_var.get()
         }
@@ -111,7 +117,13 @@ class UsuariosView:
     def mostrar_resultados(self, usuarios):
         self.tree.delete(*self.tree.get_children())
         for usuario in usuarios:
-            self.tree.insert('', 'end', values=[usuario[field] for field in self.entries.keys()])
+            # Corrigido: mapeamento correto dos campos
+            self.tree.insert('', 'end', values=[
+                usuario.get('nome', ''),
+                usuario.get('email', ''),
+                usuario.get('id_usuario', ''),
+                usuario.get('tipo', '')
+            ])
 
     def voltar_menu(self):
         from views.menu_principal import MenuPrincipal
