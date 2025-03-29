@@ -92,9 +92,14 @@ cd AT1_N1_NT</code></pre>
             <td><a href="https://github.com/itsryu">itsryu</a></td>
         </tr>
         <tr>
-            <td> Aline Oliveira </td>
-            <td> 23101158 </td>
+            <td>Aline Oliveira</td>
+            <td>UC23101158</td>
             <td><a href="https://github.com/alineop120">alineop120</a></td>
+        </tr>
+        <tr>
+            <td>Cariny Saldanha</td>
+            <td>UC23101592</td>
+            <td><a href="https://github.com/carinysaldanha">carinysaldanha</a></td>
         </tr>
     </table>
 </div>
