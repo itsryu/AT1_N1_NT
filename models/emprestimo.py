@@ -1,16 +1,27 @@
+from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Dict, Any, Optional
 
+@dataclass
 class Emprestimo:
-    def __init__(self, isbn, user_id, data_emprestimo=None, data_devolucao=None):
-        self.isbn = isbn
-        self.user_id = user_id
-        self.data_emprestimo = data_emprestimo or datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.data_devolucao = data_devolucao
+    ISBN: str
+    UserID: str
+    DataEmprestimo: str = field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    DataDevolucao: Optional[str] = None
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         return {
-            'ISBN': self.isbn,
-            'UserID': self.user_id,
-            'DataEmprestimo': self.data_emprestimo,
-            'DataDevolucao': self.data_devolucao or ''
+            'ISBN': self.ISBN,
+            'UserID': self.UserID,
+            'DataEmprestimo': self.DataEmprestimo,
+            'DataDevolucao': self.DataDevolucao or ''
         }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'Emprestimo':
+        return cls(
+            ISBN=data['ISBN'],
+            UserID=data['UserID'],
+            DataEmprestimo=data.get('DataEmprestimo', datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+            DataDevolucao=data.get('DataDevolucao') or None
+        )

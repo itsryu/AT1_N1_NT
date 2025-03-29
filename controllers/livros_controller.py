@@ -1,28 +1,31 @@
+from typing import List
 from models.livro import Livro
 from utils.file_manager import FileManager
+from controllers.base_controller import BaseController
 
-class LivrosController:
+class LivrosController(BaseController[Livro]):
     def __init__(self):
-        self.file_manager = FileManager('livros.csv', 
-                                      ['Título', 'Autor', 'Ano', 'ISBN', 'Categoria'])
+        super().__init__(FileManager(
+            filename='data/livros.csv',
+            headers=['Título', 'Autor', 'Ano', 'ISBN', 'Categoria'],
+            model_class=Livro
+        ))
 
-    def cadastrar_livro(self, livro_data):
-        # Garante que as chaves estão no formato correto
-        livro_data_formatada = {
-            'Título': livro_data.get('Título', livro_data.get('Titulo', '')),
-            'Autor': livro_data.get('Autor', ''),
-            'Ano': livro_data.get('Ano', ''),
-            'ISBN': livro_data.get('ISBN', ''),
-            'Categoria': livro_data.get('Categoria', '')
-        }
-        livro = Livro(**livro_data_formatada)
-        self.file_manager.add_data(livro.to_dict())
-        return True
+    def buscar_por_termo(self, termo: str) -> List[Livro]:
+        termo = termo.lower()
 
-    def listar_livros(self):
-        return self.file_manager.load_data()
+        return [
+            livro for livro in self.list_all()
 
-    def buscar_livros(self, keyword):
-        livros = self.listar_livros()
-        return [livro for livro in livros if 
-                keyword.lower() in ' '.join(str(v) for v in livro.values()).lower()]
+            if termo in livro.Título.lower() or 
+               termo in livro.Autor.lower() or 
+               termo in livro.Categoria.lower() or
+               termo in livro.Ano.lower() or
+               termo in livro.ISBN.lower()
+        ]
+    
+    def cadastrar_livro(self, livro: Livro) -> None:
+        self.add(livro)
+
+    def isbn_existe(self, isbn: str) -> bool:
+        return any(livro.ISBN == isbn for livro in self.list_all())

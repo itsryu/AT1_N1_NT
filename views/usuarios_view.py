@@ -1,131 +1,174 @@
-import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, StringVar
+from typing import Dict, List
+from models.usuario import Usuario
 from controllers.usuarios_controller import UsuariosController
+from views.base_view import BaseView
+import tkinter as tk
 
-class UsuariosView:
-    def __init__(self, root):
-        self.root = root
-        self.controller = UsuariosController()
-        self.setup_ui()
+def handle_errors(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            args[0].show_error(f"Ocorreu um erro em '{func.__name__}': {e}")
+    return wrapper
 
-    def clear_frame(self):
-        for widget in self.root.winfo_children():
-            widget.destroy()
+class UsuariosView(BaseView):
 
-    def setup_ui(self):
+    @handle_errors
+    def setup_ui(self) -> None:
         self.clear_frame()
-        main_frame = tk.Frame(self.root, bg="#f0f0f0")
-        main_frame.pack(expand=True, fill='both', padx=20, pady=20)
-        
-        # Frame para cadastro
-        frame_cadastro = tk.Frame(main_frame, bg="#f0f0f0")
-        frame_cadastro.pack(fill='x', pady=10)
-        
-        tk.Label(frame_cadastro, text="Cadastro de Usuários", font=('Arial', 14), bg="#f0f0f0").pack(pady=10)
-        
-        # Campos de entrada
-        fields = ['Nome', 'Email', 'ID', 'Tipo']
-        self.entries = {}
-        
-        for field in fields[:3]:  # Nome, Email, ID
-            row_frame = tk.Frame(frame_cadastro, bg="#f0f0f0")
-            row_frame.pack(fill='x', pady=5)
-            
-            tk.Label(row_frame, text=field, bg="#f0f0f0", width=10, anchor='e').pack(side='left', padx=5)
-            entry = tk.Entry(row_frame, width=40)
-            entry.pack(side='left', padx=5)
-            self.entries[field] = entry
-        
-        # Tipo de usuário (combobox)
-        row_frame = tk.Frame(frame_cadastro, bg="#f0f0f0")
-        row_frame.pack(fill='x', pady=5)
-        
-        tk.Label(row_frame, text="Tipo", bg="#f0f0f0", width=10, anchor='e').pack(side='left', padx=5)
-        self.tipo_var = tk.StringVar()
-        cb_tipo = ttk.Combobox(row_frame, textvariable=self.tipo_var, 
-                              values=['aluno', 'professor', 'visitante'], width=37)
-        cb_tipo.pack(side='left', padx=5)
-        
-        btn_frame = tk.Frame(frame_cadastro, bg="#f0f0f0")
-        btn_frame.pack(fill='x', pady=10)
-        
-        tk.Button(btn_frame, text="Salvar Usuário", command=self.salvar_usuario, 
-                 bg="#2196F3", fg="white", width=15).pack(side='left', padx=5)
-        tk.Button(btn_frame, text="Limpar", command=self.limpar_campos,
-                 bg="#607D8B", fg="white", width=15).pack(side='left', padx=5)
-        
-        # Frame para busca
-        frame_busca = tk.Frame(main_frame, bg="#f0f0f0")
-        frame_busca.pack(fill='x', pady=10)
-        
-        search_frame = tk.Frame(frame_busca, bg="#f0f0f0")
-        search_frame.pack()
-        
-        tk.Label(search_frame, text="Buscar:", bg="#f0f0f0").pack(side='left', padx=5)
-        self.entry_busca = tk.Entry(search_frame, width=40)
-        self.entry_busca.pack(side='left', padx=5)
-        tk.Button(search_frame, text="Buscar", command=self.buscar_usuarios,
-                 bg="#4CAF50", fg="white").pack(side='left', padx=5)
-        
-        # Treeview para exibição
-        self.tree = ttk.Treeview(main_frame, columns=fields, show='headings', selectmode='browse')
-        self.tree.pack(expand=True, fill='both', padx=10, pady=10)
-        
-        for field in fields:
-            self.tree.heading(field, text=field)
-            self.tree.column(field, width=120)
-        
-        # Botão voltar
-        tk.Button(main_frame, text="Voltar ao Menu", command=self.voltar_menu,
-                 bg="#F44336", fg="white", width=20).pack(pady=10)
-        
+        self.controller = UsuariosController()
+        self.tipo_var = StringVar(value="Aluno")
+
+        main_frame = self.create_frame(bg="#f0f0f0")
+        self.setup_cadastro_section(main_frame)
+        self.setup_busca_section(main_frame)
+        self.setup_results_section(main_frame)
+        self.setup_back_button(main_frame)
         self.carregar_usuarios()
 
-    def salvar_usuario(self):
-        # Corrigido: usando os nomes de parâmetros consistentes com o model
-        usuario_data = {
-            'nome': self.entries['Nome'].get(),
-            'email': self.entries['Email'].get(),
-            'id_usuario': self.entries['ID'].get(),
-            'tipo': self.tipo_var.get()
+    @handle_errors
+    def setup_cadastro_section(self, parent: tk.Widget) -> None:
+        frame_cadastro = self.create_frame(parent, bg="#f0f0f0")
+        self.create_label(frame_cadastro, "Cadastro de Usuários", font=("Arial", 14)).pack(pady=10)
+        self.entries = self.create_form_fields(frame_cadastro)
+        self.create_action_buttons(frame_cadastro)
+
+    @handle_errors
+    def create_form_fields(self, parent: tk.Widget) -> Dict[str, tk.Widget]:
+        fields = {
+            "Nome": {"type": "entry"},
+            "Email": {"type": "entry"},
+            "ID": {"type": "entry"},
+            "Tipo": {"type": "combobox", "values": list(Usuario.TIPOS_PERMITIDOS), "var": self.tipo_var},
         }
-        
-        try:
-            self.controller.cadastrar_usuario(usuario_data)
-            messagebox.showinfo("Sucesso", "Usuário cadastrado com sucesso!")
+
+        entries = {}
+
+        for field, config in fields.items():
+            row_frame = tk.Frame(parent, bg="#f0f0f0")
+            row_frame.pack(fill="x", pady=5)
+
+            self.create_label(row_frame, field, width=10, anchor="e").pack(side="left", padx=5)
+
+            if config["type"] == "entry":
+                entries[field] = self.create_entry(row_frame)
+                entries[field].pack(side="left", padx=5)
+            elif config["type"] == "combobox":
+                entries[field] = self.create_combobox(row_frame, values=config["values"], textvariable=config["var"])
+                entries[field].pack(side="left", padx=5)
+                entries[field].state(["readonly"])
+
+        return entries
+
+    @handle_errors
+    def create_action_buttons(self, parent: tk.Widget) -> None:
+        btn_frame = tk.Frame(parent, bg="#f0f0f0")
+        btn_frame.pack(fill="x", pady=10)
+
+        self.create_button(btn_frame, "Salvar Usuário", self.salvar_usuario, bg="#4CAF50").pack(side="left", padx=5)
+        self.create_button(btn_frame, "Limpar", self.limpar_campos, bg="#607D8B").pack(side="left", padx=5)
+
+    @handle_errors
+    def setup_busca_section(self, parent: tk.Widget) -> None:
+        frame_busca = self.create_frame(parent, bg="#f0f0f0")
+
+        search_frame = tk.Frame(frame_busca, bg="#f0f0f0")
+        search_frame.pack()
+
+        self.create_label(search_frame, "Buscar:").pack(side="left", padx=5)
+        self.entry_busca = self.create_entry(search_frame)
+        self.entry_busca.pack(side="left", padx=5)
+
+        self.create_button(search_frame, "Buscar", self.buscar_usuarios, bg="#4CAF50", width=10).pack(side="left", padx=5)
+
+    @handle_errors
+    def setup_results_section(self, parent: tk.Widget) -> None:
+        columns = ["Nome", "Email", "ID", "Tipo"]
+        self.tree = self.create_treeview(parent, columns=columns)
+        self.tree.pack(expand=True, fill="both", padx=10, pady=10)
+
+        self.tree.column("Nome", width=180, anchor="w")
+        self.tree.column("Email", width=200, anchor="w")
+        self.tree.column("ID", width=100, anchor="center")
+        self.tree.column("Tipo", width=100, anchor="center")
+
+        scrollbar = ttk.Scrollbar(parent, orient="vertical", command=self.tree.yview)
+        scrollbar.pack(side="right", fill="y")
+        self.tree.configure(yscrollcommand=scrollbar.set)
+
+    @handle_errors
+    def setup_back_button(self, parent: tk.Widget) -> None:
+        self.create_button(parent, "Voltar ao Menu", self.voltar_menu, bg="#F44336", width=20).pack(pady=10)
+
+    @handle_errors
+    def salvar_usuario(self) -> None:
+        usuario_data = {
+            "Nome": self.entries["Nome"].get().strip(),
+            "Email": self.entries["Email"].get().strip(),
+            "ID": self.entries["ID"].get().strip(),
+            "Tipo": self.tipo_var.get(),
+        }
+
+        self.validate_user_data(usuario_data)
+        usuario = Usuario(**usuario_data)
+        self.controller.cadastrar_usuario(usuario)
+        self.show_success("Usuário cadastrado com sucesso!")
+        self.carregar_usuarios()
+        self.limpar_campos()
+
+    def validate_user_data(self, data: Dict[str, str]) -> None:
+        if not all(data.values()):
+            raise ValueError("Todos os campos são obrigatórios!")
+        if "@" not in data["Email"]:
+            raise ValueError("E-mail inválido!")
+
+    @handle_errors
+    def limpar_campos(self) -> None:
+        for widget in self.entries.values():
+            if isinstance(widget, tk.Entry):
+                widget.delete(0, "end")
+        self.tipo_var.set("Aluno")
+
+    @handle_errors
+    def buscar_usuarios(self) -> None:
+        termo = self.entry_busca.get().strip().lower()
+
+        if not termo:
             self.carregar_usuarios()
-            self.limpar_campos()
-        except Exception as e:
-            messagebox.showerror("Erro", str(e))
+            return
 
-    def limpar_campos(self):
-        for entry in self.entries.values():
-            if isinstance(entry, tk.Entry):
-                entry.delete(0, tk.END)
-        self.tipo_var.set('')
+        resultados = [
+            usuario for usuario in self.controller.list_all()
+            if (termo in usuario.Nome.lower() or termo in usuario.Email.lower() or termo in usuario.Tipo.lower())
+        ]
 
-    def buscar_usuarios(self):
-        termo = self.entry_busca.get()
-        usuarios = self.controller.listar_usuarios()
-        resultados = [u for u in usuarios if termo.lower() in ' '.join(u.values()).lower()]
         self.mostrar_resultados(resultados)
 
-    def carregar_usuarios(self):
-        usuarios = self.controller.listar_usuarios()
+    @handle_errors
+    def carregar_usuarios(self) -> None:
+        usuarios = self.controller.list_all()
         self.mostrar_resultados(usuarios)
 
-    def mostrar_resultados(self, usuarios):
+    @handle_errors
+    def mostrar_resultados(self, usuarios: List[Usuario]) -> None:
         self.tree.delete(*self.tree.get_children())
+        
         for usuario in usuarios:
-            # Corrigido: mapeamento correto dos campos
-            self.tree.insert('', 'end', values=[
-                usuario.get('nome', ''),
-                usuario.get('email', ''),
-                usuario.get('id_usuario', ''),
-                usuario.get('tipo', '')
-            ])
+            self.tree.insert(
+                "",
+                "end",
+                values=(
+                    usuario.Nome,
+                    usuario.Email,
+                    usuario.ID,
+                    usuario.Tipo.capitalize(),
+                ),
+            )
 
-    def voltar_menu(self):
+    @handle_errors
+    def voltar_menu(self) -> None:
         from views.menu_principal import MenuPrincipal
         self.clear_frame()
         MenuPrincipal(self.root)

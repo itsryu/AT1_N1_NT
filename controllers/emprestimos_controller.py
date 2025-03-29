@@ -1,41 +1,38 @@
+from typing import List, Optional
+from datetime import datetime
 from models.emprestimo import Emprestimo
 from utils.file_manager import FileManager
-from controllers.livros_controller import LivrosController
-from controllers.usuarios_controller import UsuariosController
+from controllers.base_controller import BaseController
 
-class EmprestimosController:
+class EmprestimosController(BaseController[Emprestimo]):
     def __init__(self):
-        self.file_manager = FileManager('emprestimos.csv', 
-                                      ['ISBN', 'UserID', 'DataEmprestimo', 'DataDevolucao'])
-        self.livros_ctrl = LivrosController()
-        self.usuarios_ctrl = UsuariosController()
+        super().__init__(FileManager(
+            filename='data/emprestimos.csv',
+            headers=['ISBN', 'UserID', 'DataEmprestimo', 'DataDevolucao'],
+            model_class=Emprestimo
+        ))
 
-    def realizar_emprestimo(self, isbn, user_id):
-        if not self.livro_disponivel(isbn):
-            raise ValueError("Livro já emprestado ou não encontrado!")
+    def listar_ativos(self) -> List[Emprestimo]:
+        return [emp for emp in self.list_all() if not emp.DataDevolucao]
+    
+    def isbn_emprestado(self, isbn: str) -> bool:
+        emprestimos = self.listar_ativos()
+        return any(emp.ISBN == isbn for emp in emprestimos)
+    
+    def registrar_emprestimo(self, isbn: str, user_id: str) -> None:
+        emprestimo = Emprestimo(ISBN=isbn, UserID=user_id)
+        self.add(emprestimo)
+
+    def registrar_devolucao(self, isbn: str, user_id: str) -> bool:
+        emprestimos = self.list_all()
+        updated = False
         
-        if not self.usuario_existe(user_id):
-            raise ValueError("Usuário não encontrado!")
+        for emp in emprestimos:
+            if emp.ISBN == isbn and emp.UserID == user_id and not emp.DataDevolucao:
+                emp.DataDevolucao = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                updated = True
+                break
         
-        emprestimo = Emprestimo(isbn, user_id)
-        self.file_manager.add_data(emprestimo.to_dict())
-        return True
-
-    def livro_disponivel(self, isbn):
-        livros = self.livros_ctrl.listar_livros()
-        if not any(l['ISBN'] == isbn for l in livros):
-            return False
-        
-        emprestimos = self.listar_emprestimos()
-        return not any(e['ISBN'] == isbn and not e['DataDevolucao'] for e in emprestimos)
-
-    def usuario_existe(self, user_id):
-        usuarios = self.usuarios_ctrl.listar_usuarios()
-        return any(u['ID'] == user_id for u in usuarios)
-
-    def listar_emprestimos_ativos(self):
-        emprestimos = self.listar_emprestimos()
-        return [e for e in emprestimos if not e['DataDevolucao']]
-
-    def listar_emprestimos(self):
-        return self.file_manager.load_data()
+        if updated:
+            self.update_all(emprestimos)
+        return updated

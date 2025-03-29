@@ -1,28 +1,34 @@
+from typing import List
 from models.usuario import Usuario
 from utils.file_manager import FileManager
+from controllers.base_controller import BaseController
 
-class UsuariosController:
+class UsuariosController(BaseController[Usuario]):
     def __init__(self):
-        self.file_manager = FileManager('usuarios.csv', 
-                                      ['Nome', 'Email', 'ID', 'Tipo'])
+        super().__init__(FileManager(
+            filename='data/usuarios.csv',
+            headers=['Nome', 'Email', 'ID', 'Tipo'],
+            model_class=Usuario
+        ))
 
-    def cadastrar_usuario(self, usuario_data):
-        usuario = Usuario(**usuario_data)
-        if self.email_existe(usuario.email):
-            raise ValueError("Já existe um usuário com este e-mail!")
-        if self.id_existe(usuario.id_usuario):
-            raise ValueError("Já existe um usuário com este ID!")
-        
-        self.file_manager.add_data(usuario.to_dict())
-        return True
+    def buscar_por_termo(self, termo: str) -> List[Usuario]:
+        termo = termo.lower()
+        return [
+            usuario for usuario in self.list_all()
+            if termo in usuario.Nome.lower() or 
+               termo in usuario.Email.lower() or 
+               termo in usuario.Tipo.lower()
+        ]
+    
+    def cadastrar_usuario(self, usuario: Usuario) -> None:
+        if self.email_existe(usuario.Email):
+            raise ValueError("E-mail já cadastrado!")
+        if self.id_existe(usuario.ID):
+            raise ValueError("ID já cadastrado!")
+        self.add(usuario)
 
-    def email_existe(self, email):
-        usuarios = self.listar_usuarios()
-        return any(u['Email'] == email for u in usuarios)
+    def email_existe(self, email: str) -> bool:
+        return any(usuario.Email == email for usuario in self.list_all())
 
-    def id_existe(self, id_usuario):
-        usuarios = self.listar_usuarios()
-        return any(u['ID'] == id_usuario for u in usuarios)
-
-    def listar_usuarios(self):
-        return self.file_manager.load_data()
+    def id_existe(self, id_usuario: str) -> bool:
+        return any(usuario.ID == id_usuario for usuario in self.list_all())

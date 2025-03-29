@@ -1,12 +1,15 @@
-class Livro:
-    def __init__(self, Título, Autor, Ano, ISBN, Categoria):
-        self.Título = Título
-        self.Autor = Autor
-        self.Ano = Ano
-        self.ISBN = ISBN
-        self.Categoria = Categoria
+from dataclasses import dataclass
+from typing import Dict, Any
 
-    def to_dict(self):
+@dataclass
+class Livro:
+    Título: str
+    Autor: str
+    Ano: str 
+    ISBN: str
+    Categoria: str
+
+    def to_dict(self) -> Dict[str, Any]:
         return {
             'Título': self.Título,
             'Autor': self.Autor,
@@ -14,3 +17,13 @@ class Livro:
             'ISBN': self.ISBN,
             'Categoria': self.Categoria
         }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'Livro':
+        return cls(
+            Título=data['Título'],
+            Autor=data['Autor'],
+            Ano=data['Ano'],
+            ISBN=data['ISBN'],
+            Categoria=data['Categoria']
+        )
