@@ -2,6 +2,8 @@ from typing import List
 from models.usuario import Usuario
 from utils.file_manager import FileManager
 from controllers.base_controller import BaseController
+from typing import Dict
+import re
 
 class UsuariosController(BaseController[Usuario]):
     def __init__(self):
@@ -20,11 +22,20 @@ class UsuariosController(BaseController[Usuario]):
                termo in usuario.Tipo.lower()
         ]
     
-    def cadastrar_usuario(self, usuario: Usuario) -> None:
-        if self.email_existe(usuario.Email):
-            raise ValueError("E-mail já cadastrado!")
-        if self.id_existe(usuario.ID):
+    def cadastrar_usuario(self, usuario_data: Dict[str, str]) -> None:
+        if (not usuario_data.get("Nome") or 
+            not usuario_data.get("Email") or 
+            not usuario_data.get("ID") or 
+            not usuario_data.get("Tipo")):
+            raise ValueError("Todos os campos são obrigatórios!")
+        elif self.email_existe(usuario_data["Email"]):
+            raise ValueError("Email já cadastrado!")
+        elif self.id_existe(usuario_data["ID"]):
             raise ValueError("ID já cadastrado!")
+        elif not re.match(r"[^@]+@[^@]+\.[^@]+", usuario_data["Email"]):
+            raise ValueError("Email inválido!")
+        
+        usuario = Usuario(**usuario_data)
         self.add(usuario)
 
     def email_existe(self, email: str) -> bool:

@@ -15,6 +15,9 @@ class EmprestimosController(BaseController[Emprestimo]):
     def listar_ativos(self) -> List[Emprestimo]:
         return [emp for emp in self.list_all() if not emp.DataDevolucao]
     
+    def listar_devolvidos(self) -> List[Emprestimo]:
+        return [emp for emp in self.list_all() if emp.DataDevolucao]
+    
     def isbn_emprestado(self, isbn: str) -> bool:
         emprestimos = self.listar_ativos()
         return any(emp.ISBN == isbn for emp in emprestimos)

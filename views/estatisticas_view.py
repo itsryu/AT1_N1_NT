@@ -23,17 +23,14 @@ class EstatisticasView(BaseView):
         notebook = ttk.Notebook(main_frame)
         notebook.pack(expand=True, fill="both", padx=10, pady=10)
         
-        # Aba 1: Livros por Categoria
         tab1 = self.create_frame(notebook, bg="#f0f0f0")
         self.criar_aba_livros_categoria(tab1)
         notebook.add(tab1, text="Livros por Categoria")
         
-        # Aba 2: Empréstimos por Tipo
         tab2 = self.create_frame(notebook, bg="#f0f0f0")
         self.criar_aba_emprestimos_tipo(tab2)
         notebook.add(tab2, text="Empréstimos por Tipo")
         
-        # Aba 3: Livros Mais Emprestados
         tab3 = self.create_frame(notebook, bg="#f0f0f0")
         self.criar_aba_livros_mais_emprestados(tab3)
         notebook.add(tab3, text="Livros Mais Emprestados")

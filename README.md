@@ -82,7 +82,7 @@ cd AT1_N1_NT</code></pre>
 <div align="center">
     <table>
         <tr>
-            <th>Nome Completo</th>
+            <th>Nome</th>
             <th>Matrícula</th>
             <th>GitHub</th>
         </tr>
@@ -100,6 +100,11 @@ cd AT1_N1_NT</code></pre>
             <td>Cariny Saldanha</td>
             <td>UC23101592</td>
             <td><a href="https://github.com/carinysaldanha">carinysaldanha</a></td>
+        </tr>
+        <tr>
+            <td>João Carlos Lima</td>
+            <td>UC23200044</td>
+            <td><a href="https://github.com/jaolimadev">jaolimadev</a></td>
         </tr>
     </table>
 </div>

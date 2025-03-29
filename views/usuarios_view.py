@@ -14,7 +14,6 @@ def handle_errors(func):
     return wrapper
 
 class UsuariosView(BaseView):
-
     @handle_errors
     def setup_ui(self) -> None:
         self.clear_frame()
@@ -98,6 +97,33 @@ class UsuariosView(BaseView):
         scrollbar.pack(side="right", fill="y")
         self.tree.configure(yscrollcommand=scrollbar.set)
 
+        self.tree.bind("<Button-3>", self.show_context_menu)
+
+    @handle_errors
+    def show_context_menu(self, event) -> None:
+        iid = self.tree.identify_row(event.y)
+        if iid:
+            self.tree.selection_set(iid)
+            menu = tk.Menu(self.root, tearoff=0)
+            menu.add_command(label="Copiar Nome", command=lambda: self.copiar_valor(iid, 0))
+            menu.add_command(label="Copiar Email", command=lambda: self.copiar_valor(iid, 1))
+            menu.add_command(label="Copiar ID", command=lambda: self.copiar_valor(iid, 2))
+            menu.add_command(label="Copiar Tipo", command=lambda: self.copiar_valor(iid, 3))
+            menu.add_separator()
+            menu.add_command(label="Fechar", command=menu.unpost)
+            menu.post(event.x_root, event.y_root)
+
+    def copiar_valor(self, item_id: str, col_index: int) -> None:
+        item = self.tree.item(item_id)
+        
+        if "values" in item:
+            valor = item["values"][col_index]
+            self.root.clipboard_clear()
+            self.root.clipboard_append(valor)
+            self.show_success(f"Valor '{valor}' copiado para a área de transferência.")
+        else:
+            self.show_error("Nenhum valor encontrado para copiar.")
+
     @handle_errors
     def setup_back_button(self, parent: tk.Widget) -> None:
         self.create_button(parent, "Voltar ao Menu", self.voltar_menu, bg="#F44336", width=20).pack(pady=10)
@@ -111,18 +137,13 @@ class UsuariosView(BaseView):
             "Tipo": self.tipo_var.get(),
         }
 
-        self.validate_user_data(usuario_data)
-        usuario = Usuario(**usuario_data)
-        self.controller.cadastrar_usuario(usuario)
-        self.show_success("Usuário cadastrado com sucesso!")
-        self.carregar_usuarios()
-        self.limpar_campos()
-
-    def validate_user_data(self, data: Dict[str, str]) -> None:
-        if not all(data.values()):
-            raise ValueError("Todos os campos são obrigatórios!")
-        if "@" not in data["Email"]:
-            raise ValueError("E-mail inválido!")
+        try:
+            self.controller.cadastrar_usuario(usuario_data)
+            self.show_success("Usuário cadastrado com sucesso!")
+            self.carregar_usuarios()
+            self.limpar_campos()
+        except ValueError as e:
+            self.show_error(str(e))
 
     @handle_errors
     def limpar_campos(self) -> None:

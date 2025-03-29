@@ -49,6 +49,32 @@ class LivrosView(BaseView):
             entries[field].pack(side="left", padx=5)
 
         return entries
+    
+    @handle_errors
+    def show_context_menu(self, event) -> None:
+        iid = self.tree.identify_row(event.y)
+        if iid:
+            self.tree.selection_set(iid)
+            menu = tk.Menu(self.root, tearoff=0)
+            menu.add_command(label="Copiar Título", command=lambda: self.copiar_valor(iid, 0))
+            menu.add_command(label="Copiar Autor", command=lambda: self.copiar_valor(iid, 1))
+            menu.add_command(label="Copiar Ano", command=lambda: self.copiar_valor(iid, 2))
+            menu.add_command(label="Copiar ISBN", command=lambda: self.copiar_valor(iid, 3))
+            menu.add_command(label="Copiar Categoria", command=lambda: self.copiar_valor(iid, 4))
+            menu.add_separator()
+            menu.add_command(label="Fechar", command=menu.unpost)
+            menu.post(event.x_root, event.y_root)
+
+    def copiar_valor(self, item_id: str, col_index: int) -> None:
+        item = self.tree.item(item_id)
+        
+        if "values" in item:
+            valor = item["values"][col_index]
+            self.root.clipboard_clear()
+            self.root.clipboard_append(valor)
+            self.show_success(f"Valor '{valor}' copiado para a área de transferência.")
+        else:
+            self.show_error("Nenhum valor encontrado para copiar.")
 
     @handle_errors
     def create_action_buttons(self, parent: tk.Widget) -> None:
@@ -77,6 +103,9 @@ class LivrosView(BaseView):
         self.tree = self.create_treeview(parent, columns=["Título", "Autor", "Ano", "ISBN", "Categoria"])
         self.tree.pack(expand=True, fill="both", padx=10, pady=10)
 
+        self.tree.bind("<Button-3>", self.show_context_menu)
+
+
     @handle_errors
     def setup_back_button(self, parent: tk.Widget) -> None:
         self.create_button(parent, "Voltar ao Menu", self.voltar_menu, bg="#F44336").pack(pady=10)
@@ -84,10 +113,9 @@ class LivrosView(BaseView):
     @handle_errors
     def salvar_livro(self) -> None:
         livro_data = {field: self.entries[field].get() for field in self.entries}
-        livro = Livro(**livro_data)
-
+        
         try:
-            self.controller.cadastrar_livro(livro)
+            self.controller.cadastrar_livro(livro_data)
             self.show_success("Livro cadastrado com sucesso!")
             self.carregar_livros()
             self.limpar_campos()

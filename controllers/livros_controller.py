@@ -2,6 +2,7 @@ from typing import List
 from models.livro import Livro
 from utils.file_manager import FileManager
 from controllers.base_controller import BaseController
+from typing import Dict
 
 class LivrosController(BaseController[Livro]):
     def __init__(self):
@@ -24,7 +25,17 @@ class LivrosController(BaseController[Livro]):
                termo in livro.ISBN.lower()
         ]
     
-    def cadastrar_livro(self, livro: Livro) -> None:
+    def cadastrar_livro(self, livro_data: Dict[str, str]) -> None:
+        if (not livro_data.get("Título") or 
+            not livro_data.get("Autor") or 
+            not livro_data.get("Ano") or 
+            not livro_data.get("ISBN") or 
+            not livro_data.get("Categoria")):
+            raise ValueError("Todos os campos são obrigatórios!")
+        elif self.isbn_existe(livro_data["ISBN"]):
+            raise ValueError("ISBN já cadastrado!")
+        
+        livro = Livro(**livro_data)
         self.add(livro)
 
     def isbn_existe(self, isbn: str) -> bool:
