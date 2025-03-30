@@ -1,4 +1,4 @@
-from typing import List, TypeVar, Generic, Type
+from typing import List, TypeVar, Generic
 from utils.file_manager import FileManager, BaseModel
 
 T = TypeVar('T', bound=BaseModel)

@@ -1,4 +1,4 @@
-Título,Autor,Ano,ISBN,Categoria
+Title,Author,Year,ISBN,Category
 1984,George Orwell,1949,978-0451524935,Ficção Distópica
 Dom Quixote,Miguel de Cervantes,1605,978-0060934347,Clássico
 Cem Anos de Solidão,Gabriel García Márquez,1967,978-0060883287,Realismo Mágico
@@ -10,3 +10,4 @@ O Senhor dos Anéis: A Sociedade do Anel,J.R.R. Tolkien,1954,978-8533613379,Fant
 Crime e Castigo,Fiodor Dostoiévski,1866,978-8525430997,Romance Psicológico
 O Alquimista,Paulo Coelho,1988,978-0062315007,Autoajuda
 Código Limpo,Robert C. Martin,2008,978-8576082675,Programação
+Introdução à Teoria da Computação,Michael Sipser,2012,978-1133187790,Teoria da Computação

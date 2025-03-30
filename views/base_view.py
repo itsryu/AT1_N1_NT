@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
 from abc import ABC, abstractmethod
-from typing import Dict, Any, List, Optional, Callable
+from typing import Any, List, Optional, Callable
 
 class BaseView(ABC):
     def __init__(self, root: tk.Tk) -> None:

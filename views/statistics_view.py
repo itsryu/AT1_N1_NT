@@ -1,21 +1,14 @@
 from tkinter import ttk
 import tkinter as tk
-from controllers.estatisticas_controller import EstatisticasController
+from controllers.statistics_controller import StatisticsController
 from views.base_view import BaseView
+from utils.helpers import handle_errors
 
-def handle_errors(func):
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except Exception as e:
-            args[0].show_error(f"Ocorreu um erro em '{func.__name__}': {e}")
-    return wrapper
-
-class EstatisticasView(BaseView):
+class StatisticsView(BaseView):
     @handle_errors
     def setup_ui(self) -> None:
         self.clear_frame()
-        self.controller = EstatisticasController()
+        self.controller = StatisticsController()
         
         main_frame = self.create_frame(bg="#f0f0f0")
         self.create_label(main_frame, "Estatísticas e Relatórios", font=("Arial", 14)).pack(pady=10)
@@ -39,7 +32,7 @@ class EstatisticasView(BaseView):
 
     @handle_errors
     def criar_aba_livros_categoria(self, parent: tk.Widget) -> None:
-        dados = self.controller.livros_por_categoria()
+        dados = self.controller.books_by_category()
         
         frame = self.create_frame(parent, bg="#f0f0f0")
         frame.pack(expand=True, fill="both", padx=10, pady=10)
@@ -57,7 +50,7 @@ class EstatisticasView(BaseView):
 
     @handle_errors
     def criar_aba_emprestimos_tipo(self, parent: tk.Widget) -> None:
-        dados = self.controller.emprestimos_por_tipo()
+        dados = self.controller.loans_by_user_type()
         
         frame = self.create_frame(parent, bg="#f0f0f0")
         frame.pack(expand=True, fill="both", padx=10, pady=10)
@@ -75,7 +68,7 @@ class EstatisticasView(BaseView):
 
     @handle_errors
     def criar_aba_livros_mais_emprestados(self, parent: tk.Widget) -> None:
-        dados = self.controller.livros_mais_emprestados(limit=10)
+        dados = self.controller.most_loaned_books(limit=10)
         
         frame = self.create_frame(parent, bg="#f0f0f0")
         frame.pack(expand=True, fill="both", padx=10, pady=10)
@@ -95,6 +88,6 @@ class EstatisticasView(BaseView):
 
     @handle_errors
     def voltar_menu(self) -> None:
-        from views.menu_principal import MenuPrincipal
+        from views.main_menu import MainMenu
         self.clear_frame()
-        MenuPrincipal(self.root)
+        MainMenu(self.root)

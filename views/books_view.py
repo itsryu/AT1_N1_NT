@@ -1,31 +1,23 @@
 from typing import Dict, List
-from models.livro import Livro
-from controllers.livros_controller import LivrosController
+from models.book import Book
+from controllers.books_controller import BooksController
 from views.base_view import BaseView
+from utils.helpers import handle_errors
 import tkinter as tk
 
-def handle_errors(func):
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except Exception as e:
-            args[0].show_error(f"Ocorreu um erro em '{func.__name__}': {e}")
-
-    return wrapper
-
-class LivrosView(BaseView):
+class BooksView(BaseView):
     @handle_errors
     def setup_ui(self) -> None:
         self.clear_frame()
-        self.controller = LivrosController()
+        self.controller = BooksController()
 
         main_frame = self.create_frame(bg="#f0f0f0")
+
         self.setup_cadastro_section(main_frame)
         self.setup_busca_section(main_frame)
         self.setup_results_table(main_frame)
         self.setup_back_button(main_frame)
-
-        self.carregar_livros()
+        self.load_books()
 
     @handle_errors
     def setup_cadastro_section(self, parent: tk.Widget) -> None:
@@ -53,26 +45,28 @@ class LivrosView(BaseView):
     @handle_errors
     def show_context_menu(self, event) -> None:
         iid = self.tree.identify_row(event.y)
+
         if iid:
             self.tree.selection_set(iid)
             menu = tk.Menu(self.root, tearoff=0)
-            menu.add_command(label="Copiar Título", command=lambda: self.copiar_valor(iid, 0))
-            menu.add_command(label="Copiar Autor", command=lambda: self.copiar_valor(iid, 1))
-            menu.add_command(label="Copiar Ano", command=lambda: self.copiar_valor(iid, 2))
-            menu.add_command(label="Copiar ISBN", command=lambda: self.copiar_valor(iid, 3))
-            menu.add_command(label="Copiar Categoria", command=lambda: self.copiar_valor(iid, 4))
+            menu.add_command(label="Copiar Título", command=lambda: self.copy_value(iid, 0))
+            menu.add_command(label="Copiar Autor", command=lambda: self.copy_value(iid, 1))
+            menu.add_command(label="Copiar Ano", command=lambda: self.copy_value(iid, 2))
+            menu.add_command(label="Copiar ISBN", command=lambda: self.copy_value(iid, 3))
+            menu.add_command(label="Copiar Categoria", command=lambda: self.copy_value(iid, 4))
             menu.add_separator()
             menu.add_command(label="Fechar", command=menu.unpost)
             menu.post(event.x_root, event.y_root)
 
-    def copiar_valor(self, item_id: str, col_index: int) -> None:
+    @handle_errors
+    def copy_value(self, item_id: str, col_index: int) -> None:
         item = self.tree.item(item_id)
         
         if "values" in item:
             valor = item["values"][col_index]
             self.root.clipboard_clear()
             self.root.clipboard_append(valor)
-            self.show_success(f"Valor '{valor}' copiado para a área de transferência.")
+            self.show_success(f"'{valor}' copiado para a área de transferência.")
         else:
             self.show_error("Nenhum valor encontrado para copiar.")
 
@@ -81,9 +75,8 @@ class LivrosView(BaseView):
         btn_frame = tk.Frame(parent, bg="#f0f0f0")
         btn_frame.pack(fill="x", pady=10)
 
-        self.create_button(btn_frame, "Salvar Livro", self.salvar_livro, bg="#4CAF50").pack(side="left", padx=5)
-
-        self.create_button(btn_frame, "Limpar", self.limpar_campos, bg="#607D8B").pack(side="left", padx=5)
+        self.create_button(btn_frame, "Salvar Livro", self.save_book, bg="#4CAF50").pack(side="left", padx=5)
+        self.create_button(btn_frame, "Limpar", self.save_book, bg="#607D8B").pack(side="left", padx=5)
 
     @handle_errors
     def setup_busca_section(self, parent: tk.Widget) -> None:
@@ -96,7 +89,7 @@ class LivrosView(BaseView):
         self.entry_busca = self.create_entry(search_frame)
         self.entry_busca.pack(side="left", padx=5)
 
-        self.create_button(search_frame, "Buscar", self.buscar_livros, bg="#4CAF50", width=10).pack(side="left", padx=5)
+        self.create_button(search_frame, "Buscar", self.search_book, bg="#4CAF50", width=10).pack(side="left", padx=5)
 
     @handle_errors
     def setup_results_table(self, parent: tk.Widget) -> None:
@@ -108,55 +101,62 @@ class LivrosView(BaseView):
 
     @handle_errors
     def setup_back_button(self, parent: tk.Widget) -> None:
-        self.create_button(parent, "Voltar ao Menu", self.voltar_menu, bg="#F44336").pack(pady=10)
+        self.create_button(parent, "Voltar ao Menu", self.back_menu, bg="#F44336").pack(pady=10)
 
     @handle_errors
-    def salvar_livro(self) -> None:
-        livro_data = {field: self.entries[field].get() for field in self.entries}
+    def save_book(self) -> None:
+        book_data = {
+            "Title": self.entries["Título"].get(),
+            "Author": self.entries["Autor"].get(),
+            "Year": self.entries["Ano"].get(),
+            "ISBN": self.entries["ISBN"].get(),
+            "Category": self.entries["Categoria"].get(),
+        }
         
         try:
-            self.controller.cadastrar_livro(livro_data)
+            self.controller.register_book(book_data)
             self.show_success("Livro cadastrado com sucesso!")
-            self.carregar_livros()
-            self.limpar_campos()
+            self.load_books()
+            self.clear_fields()
         except ValueError as e:
             self.show_error(str(e))
 
     @handle_errors
-    def limpar_campos(self) -> None:
+    def clear_fields(self) -> None:
         for entry in self.entries.values():
             entry.delete(0, "end")
 
     @handle_errors
-    def buscar_livros(self) -> None:
+    def search_book(self) -> None:
         termo = self.entry_busca.get()
-        resultados = self.controller.buscar_por_termo(termo)
-        self.mostrar_resultados(resultados)
+        resultados = self.controller.search_term(termo)
+        self.show_results(resultados)
 
     @handle_errors
-    def carregar_livros(self) -> None:
+    def load_books(self) -> None:
         livros = self.controller.list_all()
-        self.mostrar_resultados(livros)
+        self.show_results(livros)
 
     @handle_errors
-    def mostrar_resultados(self, livros: List[Livro]) -> None:
+    def show_results(self, livros: List[Book]) -> None:
         self.tree.delete(*self.tree.get_children())
+        
         for livro in livros:
             self.tree.insert(
                 "",
                 "end",
                 values=[
-                    livro.Título,
-                    livro.Autor,
-                    livro.Ano,
+                    livro.Title,
+                    livro.Author,
+                    livro.Year,
                     livro.ISBN,
-                    livro.Categoria,
+                    livro.Category,
                 ],
             )
 
     @handle_errors
-    def voltar_menu(self) -> None:
-        from views.menu_principal import MenuPrincipal
+    def back_menu(self) -> None:
+        from views.main_menu import MainMenu
 
         self.clear_frame()
-        MenuPrincipal(self.root)
+        MainMenu(self.root)
