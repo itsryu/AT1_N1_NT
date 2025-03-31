@@ -13,5 +13,10 @@ class BaseController(Generic[T]):
     def add(self, item: T) -> None:
         self.file_manager.add_data(item)
 
+    def remove(self, item: T) -> None:
+        items = self.list_all()
+        items.remove(item)
+        self.file_manager.update_data(items)
+
     def update_all(self, items: List[T]) -> None:
         self.file_manager.update_data(items)

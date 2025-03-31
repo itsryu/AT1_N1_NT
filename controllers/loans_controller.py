@@ -32,7 +32,7 @@ class LoansController(BaseController[Loan]):
         
         for loan in loans:
             if loan.ISBN == isbn and loan.UserID == user_id and not loan.ReturnDate:
-                loan.ReturnDate = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                loan.ReturnDate = datetime.now()
                 updated = True
                 break
         

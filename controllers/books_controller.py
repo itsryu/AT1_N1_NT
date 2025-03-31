@@ -35,5 +35,19 @@ class BooksController(BaseController[Book]):
         book = Book(**book_data)
         self.add(book)
 
+    def delete_book(self, isbn: str) -> None:
+        books = self.list_all()
+        book_to_remove = None
+
+        for book in books:
+            if book.ISBN == isbn:
+                book_to_remove = book
+                break
+
+        if book_to_remove:
+            self.remove(book_to_remove)
+        else:
+            raise ValueError("Book not found!")
+
     def isbn_exists(self, isbn: str) -> bool:
         return any(book.ISBN == isbn for book in self.list_all())

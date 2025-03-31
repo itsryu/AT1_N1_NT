@@ -6,22 +6,25 @@ from typing import Dict, Any, Optional
 class Loan:
     ISBN: str
     UserID: str
-    LoanDate: str = field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    ReturnDate: Optional[str] = None
+    LoanDate: datetime = field(default_factory=datetime.now)
+    ReturnDate: Optional[datetime] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             'ISBN': self.ISBN,
             'UserID': self.UserID,
-            'LoanDate': self.LoanDate,
-            'ReturnDate': self.ReturnDate or ''
+            'LoanDate': self.LoanDate.strftime("%Y-%m-%d %H:%M:%S.%f") if self.LoanDate else '',
+            'ReturnDate': self.ReturnDate.strftime("%Y-%m-%d %H:%M:%S.%f") if self.ReturnDate else ''
         }
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'Loan':
+        loan_date = datetime.strptime(data['LoanDate'], "%Y-%m-%d %H:%M:%S.%f") if data.get('LoanDate') else datetime.now()
+        return_date = datetime.strptime(data['ReturnDate'], "%Y-%m-%d %H:%M:%S.%f") if data.get('ReturnDate') else None
+        
         return cls(
             ISBN=data['ISBN'],
             UserID=data['UserID'],
-            LoanDate=data.get('LoanDate', datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
-            ReturnDate=data.get('ReturnDate') or None
+            LoanDate=loan_date,
+            ReturnDate=return_date
         )

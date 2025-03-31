@@ -1,143 +1,348 @@
-from typing import List, Optional, Any, Dict
+from typing import List, Optional, Tuple
 import tkinter as tk
 from tkinter import ttk, simpledialog, messagebox
 from models.loan import Loan
 from controllers.loans_controller import LoansController
 from controllers.books_controller import BooksController
 from controllers.users_controller import UsersController
-from utils.helpers import format_date
-from utils.helpers import handle_errors
+from utils.helpers import handle_errors, format_date
+from utils.logger import Logger
+from utils.style import ColorPalette, Fonts
 from views.base_view import BaseView
+import datetime 
+
 
 class LoansView(BaseView):
     @handle_errors
     def setup_ui(self) -> None:
-        self.clear_frame()
         self.controller = LoansController()
         self.books_controller = BooksController()
         self.users_controller = UsersController()
 
-        main_frame = self.create_frame(bg="#f0f0f0")
+        self.clear_frame()
+        self.setup_window()
+        self.create_main_container()
+        self.create_header_section()
+        self.create_action_buttons()
+        self.create_search_section()
+        self.create_active_loans_section()
+        self.create_returns_section()
+        self.create_footer()
+        self.load_data()
 
-        self.create_label(main_frame, "Sistema de Empréstimos", font=("Arial", 14, "bold")).pack(pady=(0, 15))
-        self.build_action_buttons(main_frame)
-        self.initialize_search_section(main_frame)
-        self.initialize_results_table(main_frame)
-        self.initialize_returns_table(main_frame)
-        self.initialize_back_button(main_frame)
+    @handle_errors
+    def setup_window(self) -> None:
+        self.root.title("Sistema de Empréstimos - Biblioteca Digital")
+        self.center_window()
 
-        self.load_loans()
+    @handle_errors
+    def create_main_container(self) -> None:
+        self.main_frame = self.create_frame(
+            bg=ColorPalette.BACKGROUND,
+            padx=20,
+            pady=20
+        )
+        self.main_frame.pack(expand=True, fill=tk.BOTH)
+
+    @handle_errors
+    def create_header_section(self) -> None:
+        header_frame = self.create_frame(
+            self.main_frame,
+            bg=ColorPalette.BACKGROUND
+        )
+        header_frame.pack(fill=tk.X, pady=(0, 20))
+
+        title_frame = self.create_frame(header_frame, bg=ColorPalette.BACKGROUND)
+        title_frame.pack(side=tk.LEFT, expand=True)
+        
+        self.create_label(
+            title_frame,
+            text="📚 Sistema de Empréstimos",
+            font=Fonts.TITLE,
+            fg=ColorPalette.TEXT_PRIMARY,
+            bg=ColorPalette.BACKGROUND
+        ).pack(anchor="w")
+
+        self.create_button(
+            header_frame,
+            text="← Voltar ao Menu",
+            command=self.back_to_menu,
+            bg=ColorPalette.LIGHT,
+            fg=ColorPalette.TEXT_PRIMARY,
+            font=Fonts.BODY,
+            width=15
+        ).pack(side=tk.RIGHT)
+
+    @handle_errors
+    def create_action_buttons(self) -> None:
+        btn_frame = self.create_frame(
+            self.main_frame,
+            bg=ColorPalette.BACKGROUND,
+            pady=10
+        )
+        btn_frame.pack(fill=tk.X)
+
+        buttons = [
+            ("➕ Novo Empréstimo", self.new_loan, ColorPalette.PRIMARY),
+            ("🔙 Registrar Devolução", self.register_return, ColorPalette.SUCCESS),
+            ("🔄 Atualizar Listas", self.load_data, ColorPalette.INFO)
+        ]
+
+        for text, command, color in buttons:
+            btn = self.create_button(
+                btn_frame,
+                text=text,
+                command=command,
+                bg=color,
+                fg=ColorPalette.BUTTON_TEXT,
+                font=Fonts.BUTTON,
+                width=20
+            )
+            btn.pack(side=tk.LEFT, padx=5)
+
+    @handle_errors
+    def create_search_section(self) -> None:
+        search_frame = self.create_frame(
+            self.main_frame,
+            bg=ColorPalette.SURFACE,
+            padx=15,
+            pady=15,
+            highlightbackground=ColorPalette.LIGHT,
+            highlightthickness=1
+        )
+        search_frame.pack(fill=tk.X, pady=(0, 20))
+
+        search_container = self.create_frame(search_frame, bg=ColorPalette.SURFACE)
+        search_container.pack(fill=tk.X)
+
+        self.search_entry = self.create_entry(
+            search_container,
+            font=Fonts.BODY,
+            highlightcolor=ColorPalette.PRIMARY
+        )
+        self.search_entry.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=5)
+
+        search_btn = self.create_button(
+            search_container,
+            text="🔍 Buscar",
+            command=self.search_loans,
+            bg=ColorPalette.INFO,
+            fg=ColorPalette.BUTTON_TEXT,
+            font=Fonts.BUTTON
+        )
+        search_btn.pack(side=tk.LEFT, padx=5)
+
+    @handle_errors
+    def create_active_loans_section(self) -> None:
+        section_frame = self.create_frame(
+            self.main_frame,
+            bg=ColorPalette.BACKGROUND
+        )
+        section_frame.pack(fill=tk.BOTH, expand=True)
+
+        self.create_label(
+            section_frame,
+            text="📋 Empréstimos Ativos",
+            font=Fonts.SUBTITLE,
+            fg=ColorPalette.TEXT_PRIMARY,
+            bg=ColorPalette.BACKGROUND
+        ).pack(anchor=tk.W, pady=(0, 10))
+
+        self.active_loans_tree = self.create_loans_treeview(section_frame)
+        self.active_loans_tree.pack(expand=True, fill=tk.BOTH)
+
+    @handle_errors
+    def create_returns_section(self) -> None:
+        section_frame = self.create_frame(
+            self.main_frame,
+            bg=ColorPalette.BACKGROUND
+        )
+        section_frame.pack(fill=tk.BOTH, expand=True)
+
+        self.create_label(
+            section_frame,
+            text="📋 Histórico de Devoluções",
+            font=Fonts.SUBTITLE,
+            fg=ColorPalette.TEXT_PRIMARY,
+            bg=ColorPalette.BACKGROUND
+        ).pack(anchor=tk.W, pady=(0, 10))
+
+        self.returns_tree = self.create_returns_treeview(section_frame)
+        self.returns_tree.pack(expand=True, fill=tk.BOTH)
+
+    @handle_errors
+    def create_loans_treeview(self, parent: tk.Widget) -> ttk.Treeview:
+        columns = [
+            ("ID", 50, "center"),
+            ("ISBN", 120, "center"),
+            ("Título", 200, "w"),
+            ("ID Usuário", 100, "center"),
+            ("Usuário", 150, "w"),
+            ("Data Empréstimo", 120, "center"),
+            ("Status", 100, "center")
+        ]
+
+        tree = self.create_table(parent, columns)
+        tree.bind("<Double-1>", lambda e: self.show_loan_details(self.active_loans_tree))
+        return tree
+
+    @handle_errors
+    def create_returns_treeview(self, parent: tk.Widget) -> ttk.Treeview:
+        columns = [
+            ("ID", 50, "center"),
+            ("ISBN", 120, "center"),
+            ("Título", 200, "w"),
+            ("ID Usuário", 100, "center"),
+            ("Usuário", 150, "w"),
+            ("Data Empréstimo", 120, "center"),
+            ("Data Devolução", 120, "center")
+        ]
+
+        tree = self.create_table(parent, columns)
+        tree.bind("<Double-1>", lambda e: self.show_loan_details(self.returns_tree))
+        return tree
+
+    @handle_errors
+    def create_table(self, parent: tk.Widget, columns: List[Tuple[str, int, str]]) -> ttk.Treeview:
+        tree = ttk.Treeview(
+            parent,
+            columns=[col[0] for col in columns],
+            show="headings",
+            selectmode="browse"
+        )
+
+        for col, width, anchor in columns:
+            tree.heading(col, text=col)
+            tree.column(col, width=width, anchor=anchor)
+
+        vsb = ttk.Scrollbar(parent, orient="vertical", command=tree.yview)
+        hsb = ttk.Scrollbar(parent, orient="horizontal", command=tree.xview)
+        tree.configure(yscrollcommand=vsb.set, xscrollcommand=hsb.set)
+
+        vsb.pack(side=tk.RIGHT, fill=tk.Y)
+        hsb.pack(side=tk.BOTTOM, fill=tk.X)
+        tree.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
+
+        style = ttk.Style()
+        style.configure("Treeview", 
+                      font=Fonts.BODY,
+                      rowheight=25,
+                      fieldbackground=ColorPalette.SURFACE)
+        style.configure("Treeview.Heading", font=Fonts.BUTTON)
+        style.map("Treeview", 
+                background=[("selected", ColorPalette.PRIMARY)],
+                foreground=[("selected", "white")])
+
+        return tree
+
+    @handle_errors
+    def create_footer(self) -> None:
+        footer_frame = self.create_frame(
+            self.main_frame,
+            bg=ColorPalette.BACKGROUND,
+            pady=10
+        )
+        footer_frame.pack(fill=tk.X, side=tk.BOTTOM)
+
+        self.create_label(
+            footer_frame,
+            text="Sistema de Biblioteca Digital © 2025",
+            font=Fonts.FOOTER,
+            fg=ColorPalette.TEXT_SECONDARY,
+            bg=ColorPalette.BACKGROUND
+        ).pack()
+
+    @handle_errors
+    def load_data(self) -> None:
+        self.load_active_loans()
         self.load_returns()
 
     @handle_errors
-    def build_action_buttons(self, parent: tk.Widget) -> None:
-        button_frame = tk.Frame(parent, bg="#f0f0f0")
-        button_frame.pack(fill="x", pady=10)
-
-        self.create_button(
-            button_frame, "Novo Empréstimo", self.new_loan, bg="#FF9800", width=20
-        ).pack(side="left", padx=5)
-        self.create_button(
-            button_frame,
-            "Registrar Devolução",
-            self.register_return,
-            bg="#FF9800",
-            width=20,
-        ).pack(side="left", padx=5)
+    def load_active_loans(self) -> None:
+        loans = self.controller.list_active()
+        self.display_active_loans(loans)
 
     @handle_errors
-    def initialize_search_section(self, parent: tk.Widget) -> None:
-        search_container = self.create_frame(parent, bg="#f0f0f0")
-        search_frame = tk.Frame(search_container, bg="#f0f0f0")
-        search_frame.pack()
-
-        self.create_label(search_frame, "Buscar:").pack(side="left", padx=5)
-        self.search_entry = self.create_entry(search_frame)
-        self.search_entry.pack(side="left", padx=5)
-        self.create_button(
-            search_frame, "Buscar", self.search_loans, bg="#4CAF50", width=10
-        ).pack(side="left", padx=5)
+    def load_returns(self) -> None:
+        returns = self.controller.list_returned()
+        self.display_returns(returns)
 
     @handle_errors
-    def initialize_results_table(self, parent: tk.Widget) -> None:
-        label = self.create_label(parent, "Empréstimos Ativos", font=("Arial", 12, "bold"))
-        label.pack(pady=(20, 5))
-
-        columns = [
-            "ID",
-            "ISBN",
-            "Título",
-            "ID do Usuário",
-            "Usuário",
-            "Data do Empréstimo",
-            "Status",
-        ]
+    def display_active_loans(self, loans: List[Loan]) -> None:
+        self.active_loans_tree.delete(*self.active_loans_tree.get_children())
         
-        self.tree = self.create_treeview(parent, columns=columns)
-        self.tree.pack(expand=True, fill="both", padx=10, pady=10)
+        books = {b.ISBN: b.Title for b in self.books_controller.list_all()}
+        users = {u.ID: u.Name for u in self.users_controller.list_all()}
 
-        col_config: Dict[str, Dict[str, Any]] = {
-            "ID": {"width": 50, "anchor": "center"},
-            "ISBN": {"width": 120, "anchor": "center"},
-            "Título": {"width": 200, "anchor": "w"},
-            "ID do Usuário": {"width": 80, "anchor": "center"},
-            "Usuário": {"width": 150, "anchor": "w"},
-            "Data do Empréstimo": {"width": 150, "anchor": "center"},
-            "Status": {"width": 100, "anchor": "center"},
-        }
+        for idx, loan in enumerate(loans, 1):
+            self.active_loans_tree.insert(
+                "", "end",
+                values=(
+                    idx,
+                    loan.ISBN,
+                    books.get(loan.ISBN, "Desconhecido"),
+                    loan.UserID,
+                    users.get(loan.UserID, "Desconhecido"),
+                    format_date(loan.LoanDate),
+                    "Ativo" if not loan.ReturnDate else "Devolvido"
+                ),
+                tags=("late",) if self.is_late(loan) else ()
+            )
 
-        for col, config in col_config.items():
-            self.tree.heading(col, text=col)
-            self.tree.column(col, **config)
-
-        scrollbar = ttk.Scrollbar(parent, orient="vertical", command=self.tree.yview)
-        scrollbar.pack(side="right", fill="y")
-        self.tree.configure(yscrollcommand=scrollbar.set)
+        self.active_loans_tree.tag_configure("late", background=ColorPalette.DANGER)
 
     @handle_errors
-    def initialize_back_button(self, parent: tk.Widget) -> None:
-        self.create_button(
-            parent, "Voltar ao Menu", self.back_to_menu, bg="#F44336", width=20
-        ).pack(pady=10)
+    def is_late(self, loan: Loan) -> bool:
+        if loan.ReturnDate:
+            return False
+        return datetime.datetime.now() > loan.LoanDate + datetime.timedelta(days=30)
+
+    @handle_errors
+    def display_returns(self, returns: List[Loan]) -> None:
+        self.returns_tree.delete(*self.returns_tree.get_children())
+        
+        books = {b.ISBN: b.Title for b in self.books_controller.list_all()}
+        users = {u.ID: u.Name for u in self.users_controller.list_all()}
+
+        for idx, loan in enumerate(returns, 1):
+            self.returns_tree.insert(
+                "", "end",
+                values=(
+                    idx,
+                    loan.ISBN,
+                    books.get(loan.ISBN, "Desconhecido"),
+                    loan.UserID,
+                    users.get(loan.UserID, "Desconhecido"),
+                    format_date(loan.LoanDate),
+                    format_date(loan.ReturnDate) if loan.ReturnDate else "N/A"
+                )
+            )
 
     @handle_errors
     def new_loan(self) -> None:
-        isbn: Optional[str] = self.get_book_isbn()
-
+        isbn = self.get_input("Novo Empréstimo", "Digite o ISBN do livro:")
         if not isbn:
             return
 
-        if not self.check_book_availability(isbn):
+        if not self.validate_book(isbn):
             return
 
-        user_id: Optional[str] = self.get_user_id()
-
+        user_id = self.get_input("Novo Empréstimo", "Digite o ID do usuário:")
         if not user_id:
             return
 
-        if not self.check_user(user_id):
+        if not self.validate_user(user_id):
             return
 
-        self.confirm_loan_registration(isbn, user_id)
+        self.confirm_and_register_loan(isbn, user_id)
 
-    def get_book_isbn(self) -> Optional[str]:
-        isbn: Optional[str] = simpledialog.askstring(
-            "Novo Empréstimo", "Digite o ISBN do livro:", parent=self.root
-        )
+    @handle_errors
+    def get_input(self, title: str, prompt: str) -> Optional[str]:
+        value = simpledialog.askstring(title, prompt, parent=self.root)
+        return value.strip() if value else None
 
-        if isbn is None:
-            self.show_warning("Operação cancelada pelo usuário")
-            return None
-
-        isbn = isbn.strip()
-
-        if not isbn: 
-            self.show_warning("Digite um ISBN válido!")
-            return None
-
-        return isbn
-
-    def check_book_availability(self, isbn: str) -> bool:
+    @handle_errors
+    def validate_book(self, isbn: str) -> bool:
         try:
             if not self.books_controller.isbn_exists(isbn):
                 self.show_error("ISBN não encontrado no sistema!")
@@ -149,200 +354,120 @@ class LoansView(BaseView):
 
             return True
         except Exception as e:
-            self.show_error(f"Erro ao verificar livro: {str(e)}")
+            Logger.error(f"Erro ao validar livro: {str(e)}")
+            self.show_error("Erro ao verificar livro!")
             return False
-
-    def get_user_id(self) -> Optional[str]:
-        user_id: Optional[str] = simpledialog.askstring(
-            "Novo Empréstimo", "Digite o ID do usuário:", parent=self.root
-        )
-
-        if user_id is None:
-            self.show_warning("Operação cancelada pelo usuário")
-            return None
         
-        if not user_id.strip():
-            self.show_warning("Digite um ID de usuário válido!")
-            return None
-        
-        return user_id.strip()
-
-    def check_user(self, user_id: str) -> bool:
+    @handle_errors
+    def validate_user(self, user_id: str) -> bool:
         try:
             if not self.users_controller.id_exists(user_id):
                 self.show_error("Usuário não encontrado!")
                 return False
             return True
         except Exception as e:
-            self.show_error(f"Erro ao verificar usuário: {str(e)}")
+            Logger.error(f"Erro ao validar usuário: {str(e)}")
+            self.show_error("Erro ao verificar usuário!")
             return False
+        
+    @handle_errors
+    def confirm_and_register_loan(self, isbn: str, user_id: str) -> None:
+        book = self.books_controller.search_term(isbn)[0]
+        user = next(u for u in self.users_controller.list_all() if u.ID == user_id)
 
-    def confirm_loan_registration(self, isbn: str, user_id: str) -> None:
-        books_list = self.books_controller.search_term(isbn)
-
-        if not books_list:
-            self.show_error("Livro não encontrado!")
-            return
-
-        book = books_list[0]
-
-        users_list = [u for u in self.users_controller.list_all() if u.ID == user_id]
-
-        if not users_list:
-            self.show_error("Usuário não encontrado!")
-            return
-
-        user = users_list[0]
-
-        confirmation: bool = messagebox.askyesno(
+        confirm = messagebox.askyesno(
             "Confirmar Empréstimo",
-            f"Confirmar empréstimo do livro:\nTítulo: {book.Title}\nPara usuário: {user.Name}\n\nDeseja continuar?",
+            f"Confirmar empréstimo do livro:\n\n"
+            f"Título: {book.Title}\n"
+            f"Para: {user.Name}\n\n"
+            f"Deseja continuar?",
+            icon="question"
         )
 
-        if confirmation:
+        if confirm:
             try:
                 self.controller.register_loan(isbn, user_id)
                 self.show_success("Empréstimo registrado com sucesso!")
-                self.load_loans()
+                self.load_data()
             except Exception as e:
-                self.show_error(f"Erro ao registrar empréstimo: {str(e)}")
+                Logger.error(f"Erro ao registrar empréstimo: {str(e)}")
+                self.show_error("Erro ao registrar empréstimo!")
 
     @handle_errors
     def register_return(self) -> None:
-        selected = self.tree.selection()
+        selected = self.active_loans_tree.selection()
 
         if not selected:
             self.show_warning("Selecione um empréstimo para devolver!")
             return
 
-        item = self.tree.item(selected[0])
+        item = self.active_loans_tree.item(selected[0])
         isbn = item["values"][1]
         user_id = item["values"][3]
 
         try:
             if self.controller.register_return(isbn, user_id):
                 self.show_success("Devolução registrada com sucesso!")
-                self.load_loans()
-                self.load_returns()
+                self.load_data()
             else:
                 self.show_error("Não foi possível registrar a devolução!")
         except Exception as e:
-            self.show_error(f"Erro ao registrar devolução: {str(e)}")
+            Logger.error(f"Erro ao registrar devolução: {str(e)}")
+            self.show_error("Erro ao registrar devolução!")
 
     @handle_errors
     def search_loans(self) -> None:
-        term: str = self.search_entry.get().strip().lower()
+        term = self.search_entry.get().strip().lower()
         if not term:
-            self.load_loans()
+            self.load_active_loans()
             return
-        loans: List[Loan] = [
-            loan
-            for loan in self.controller.list_active()
+
+        loans = [
+            loan for loan in self.controller.list_active()
             if term in loan.ISBN.lower() or term in loan.UserID.lower()
         ]
-        self.display_results(loans)
+        self.display_active_loans(loans)
 
     @handle_errors
-    def load_loans(self) -> None:
-        loans: List[Loan] = self.controller.list_active()
-        self.display_results(loans)
+    def show_loan_details(self, tree: ttk.Treeview) -> None:
+        selected = tree.selection()
+        if not selected:
+            return
 
-    @handle_errors
-    def display_results(self, loans: List[Loan]) -> None:
-        self.tree.delete(*self.tree.get_children())
-        books_dict: Dict[str, str] = {
-            b.ISBN: b.Title for b in self.books_controller.list_all()
-        }
-        users_dict: Dict[str, str] = {
-            u.ID: u.Name for u in self.users_controller.list_all()
-        }
+        item = tree.item(selected[0])
+        isbn = item["values"][1]
+        user_id = item["values"][3]
 
-        for idx, loan in enumerate(loans, start=1):
-            self.tree.insert(
-                "",
-                "end",
-                values=(
-                    idx,
-                    loan.ISBN,
-                    books_dict.get(loan.ISBN, "Desconhecido"),
-                    loan.UserID,
-                    users_dict.get(loan.UserID, "Desconhecido"),
-                    format_date(loan.LoanDate),
-                    "Ativo" if not loan.ReturnDate else "Devolvido",
-                ),
+        try:
+            book = self.books_controller.search_term(isbn)[0]
+            user = next(u for u in self.users_controller.list_all() if u.ID == user_id)
+            loan = next(l for l in self.controller.list_all() 
+                      if l.ISBN == isbn and l.UserID == user_id)
+
+            details = (
+                f"Livro:\n"
+                f"Título: {book.Title}\n"
+                f"ISBN: {book.ISBN}\n"
+                f"Categoria: {book.Category}\n\n"
+                f"Usuário:\n"
+                f"Nome: {user.Name}\n"
+                f"ID: {user.ID}\n"
+                f"Tipo: {user.Type}\n\n"
+                f"Empréstimo:\n"
+                f"Data: {format_date(loan.LoanDate)}\n"
+                f"Status: {'Devolvido' if loan.ReturnDate else 'Ativo'}\n"
             )
 
-    @handle_errors
-    def initialize_returns_table(self, parent: tk.Widget) -> None:
-        label = self.create_label(parent, "Devoluções", font=("Arial", 12, "bold"))
-        label.pack(pady=(20, 5))
+            if loan.ReturnDate:
+                details += f"Data Devolução: {loan.ReturnDate.strftime("%d/%m/%Y %H:%M")}\n"
 
-        columns = [
-            "ID",
-            "ISBN",
-            "Título",
-            "ID do Usuário",
-            "Usuário",
-            "Data do Empréstimo",
-            "Data da Devolução",
-        ]
-        self.returns_tree = self.create_treeview(parent, columns=columns)
-        self.returns_tree.pack(expand=True, fill="both", padx=10, pady=10)
-
-        col_config: Dict[str, Dict[str, Any]] = {
-            "ID": {"width": 50, "anchor": "center"},
-            "ISBN": {"width": 120, "anchor": "center"},
-            "Título": {"width": 200, "anchor": "w"},
-            "ID do Usuário": {"width": 80, "anchor": "center"},
-            "Usuário": {"width": 150, "anchor": "w"},
-            "Data do Empréstimo": {"width": 150, "anchor": "center"},
-            "Data da Devolução": {"width": 150, "anchor": "center"},
-        }
-
-        for col, config in col_config.items():
-            self.returns_tree.heading(col, text=col)
-            self.returns_tree.column(col, **config)
-
-        scrollbar = ttk.Scrollbar(
-            parent, orient="vertical", command=self.returns_tree.yview
-        )
-        scrollbar.pack(side="right", fill="y")
-        self.returns_tree.configure(yscrollcommand=scrollbar.set)
-
-    @handle_errors
-    def load_returns(self) -> None:
-        returns: List[Loan] = self.controller.list_returned()
-        self.display_returns(returns)
-
-    @handle_errors
-    def display_returns(self, returns: List[Loan]) -> None:
-        self.returns_tree.delete(*self.returns_tree.get_children())
-
-        books_dict: Dict[str, str] = {
-            b.ISBN: b.Title for b in self.books_controller.list_all()
-        }
-        users_dict: Dict[str, str] = {
-            u.ID: u.Name for u in self.users_controller.list_all()
-        }
-
-        for idx, loan in enumerate(returns, start=1):
-            self.returns_tree.insert(
-                "",
-                "end",
-                values=(
-                    idx,
-                    loan.ISBN,
-                    books_dict.get(loan.ISBN, "Desconhecido"),
-                    loan.UserID,
-                    users_dict.get(loan.UserID, "Desconhecido"),
-                    format_date(loan.LoanDate),
-                    format_date(loan.ReturnDate) if loan.ReturnDate else "N/A",
-                ),
-            )
+            messagebox.showinfo("Detalhes do Empréstimo", details)
+        except Exception as e:
+            Logger.error(f"Erro ao exibir detalhes: {str(e)}")
+            self.show_error("Erro ao recuperar detalhes do empréstimo!")
 
     @handle_errors
     def back_to_menu(self) -> None:
         from views.main_menu import MainMenu
-
         self.clear_frame()
         MainMenu(self.root)
