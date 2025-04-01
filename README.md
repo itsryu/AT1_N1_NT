@@ -60,11 +60,15 @@
 AT1_N1_NT/
 ├── controllers/          # Lógica de controle e intermedia a comunicação entre models e views
 ├── models/               # Estruturas de dados
-├── views/                # Interfaces gráficas (páginas)
-│   ├── livros_view.py
-│   ├── usuarios_view.py
-│   ├── emprestimos_view.py
-│   └── estatisticas_view.py
+|   ├── book.py
+|   ├── loan.py
+│   └── user.py
+├── views/                # Interfaces gráficas (telas)
+|   ├── main_menu.py
+│   ├── books_view.py
+│   ├── users_view.py
+│   ├── loans_view.py
+│   └── statistics_view.py
 ├── main.py               # Ponto de entrada
 └── README.md             # Documentação
 </pre>

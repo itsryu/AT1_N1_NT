@@ -6,7 +6,7 @@ from views.base_view import BaseView
 from utils.helpers import handle_errors
 from utils.logger import Logger
 from utils.style import ColorPalette, Fonts
-
+from utils.__version__ import __version__
 
 class MenuAction(Enum):
     BOOKS = auto()
@@ -188,7 +188,7 @@ class MainMenu(BaseView):
         
         version_label = self.create_label(
             footer_frame,
-            text="Versão 1.0.0 © 2025 Biblioteca Digital",
+            text=f"Versão {__version__} © 2025 Biblioteca Digital",
             font=Fonts.FOOTER,
             fg=ColorPalette.TEXT_SECONDARY,
             bg=ColorPalette.BACKGROUND
