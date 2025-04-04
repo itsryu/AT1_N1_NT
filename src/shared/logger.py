@@ -1,19 +1,6 @@
 import logging
 import sys
-
-class ColorFormatter(logging.Formatter):
-    COLORS = {
-        "DEBUG": "\033[94m",    # Blue
-        "INFO": "\033[92m",     # Green
-        "WARNING": "\033[93m",  # Yellow
-        "ERROR": "\033[91m",    # Red
-        "CRITICAL": "\033[95m", # Magenta
-    }
-    RESET = "\033[0m"
-
-    def format(self, record: logging.LogRecord) -> str:
-        color = self.COLORS.get(record.levelname, self.RESET)
-        return f"{color}{super().format(record)}{self.RESET}"
+from shared.style import ColorFormatter
 
 _handler = logging.StreamHandler(sys.stdout)
 _handler.setFormatter(ColorFormatter("%(asctime)s - %(levelname)s - %(message)s"))

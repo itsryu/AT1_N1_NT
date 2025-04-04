@@ -1,12 +1,12 @@
 from typing import Dict, List, Optional
 import tkinter as tk
 from tkinter import ttk, messagebox
-from models.user import User
-from controllers.users_controller import UsersController
+from core.models.user import User
+from core.controllers.users_controller import UsersController
 from views.base_view import BaseView
-from utils.helpers import handle_errors
-from utils.logger import Logger
-from utils.style import ColorPalette, Fonts
+from shared.helpers import handle_errors
+from shared.logger import Logger
+from shared.style import ColorPalette, Fonts
 
 
 class UsersView(BaseView):
@@ -29,7 +29,7 @@ class UsersView(BaseView):
 
     @handle_errors
     def setup_window(self) -> None:
-        self.root.title("Cadastro de Usuários - Biblioteca Digital")
+        self.root.title("Gerenciamento de Usuários - Biblioteca Digital")
         self.center_window()
 
     @handle_errors
@@ -54,7 +54,7 @@ class UsersView(BaseView):
         
         self.create_label(
             title_frame,
-            text="👥 Cadastro de Usuários",
+            text="👥 Gerenciamento de Usuários",
             font=Fonts.TITLE,
             fg=ColorPalette.TEXT_PRIMARY,
             bg=ColorPalette.BACKGROUND
@@ -84,7 +84,7 @@ class UsersView(BaseView):
 
         self.create_label(
             form_frame,
-            text="Novo Usuário",
+            text="Cadastrar Usuário",
             font=Fonts.SUBTITLE,
             fg=ColorPalette.TEXT_PRIMARY,
             bg=ColorPalette.SURFACE
@@ -276,7 +276,7 @@ class UsersView(BaseView):
 
         self.create_label(
             footer_frame,
-            text="Sistema de Biblioteca Digital © 2025",
+            text="Biblioteca Digital - Sistema de Gerenciamento de Acervo Literário",
             font=Fonts.FOOTER,
             fg=ColorPalette.TEXT_SECONDARY,
             bg=ColorPalette.BACKGROUND

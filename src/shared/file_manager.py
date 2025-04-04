@@ -2,7 +2,7 @@ import csv
 from typing import List, Dict, Any, TypeVar, Generic, Type
 from pathlib import Path
 from abc import ABC, abstractmethod
-from utils.logger import Logger
+from shared.logger import Logger
 
 T = TypeVar("T", bound="BaseModel")
 
@@ -38,8 +38,6 @@ class FileManager(Generic[T]):
             with self.filename.open("a", newline="", encoding="utf-8-sig") as file:
                 writer = csv.DictWriter(file, fieldnames=self.headers)
                 writer.writerow(data.to_dict())
-            
-            Logger.debug(f"Added data to {self.filename}")
         except Exception as e:
             Logger.error(f"Error adding data to {self.filename}: {e}")
             raise
@@ -69,8 +67,6 @@ class FileManager(Generic[T]):
                 writer.writeheader()
                 for item in new_data:
                     writer.writerow(item.to_dict())
-
-            Logger.debug(f"Updated data in {self.filename}")
         except Exception as e:
             Logger.error(f"Error updating data in {self.filename}: {e}")
             raise

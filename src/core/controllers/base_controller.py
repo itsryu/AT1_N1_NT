@@ -1,5 +1,5 @@
 from typing import List, TypeVar, Generic
-from utils.file_manager import FileManager, BaseModel
+from shared.file_manager import FileManager, BaseModel
 
 T = TypeVar('T', bound=BaseModel)
 

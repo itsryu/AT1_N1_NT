@@ -1,12 +1,12 @@
 from typing import Dict, List, Optional
 import tkinter as tk
 from tkinter import ttk, messagebox
-from models.book import Book
-from controllers.books_controller import BooksController
+from core.models.book import Book
+from core.controllers.books_controller import BooksController
 from views.base_view import BaseView
-from utils.helpers import handle_errors
-from utils.style import ColorPalette, Fonts
-from utils.logger import Logger
+from shared.helpers import handle_errors
+from shared.style import ColorPalette, Fonts
+from shared.logger import Logger
 
 
 class BooksView(BaseView):
@@ -28,7 +28,7 @@ class BooksView(BaseView):
 
     @handle_errors
     def setup_window(self) -> None:
-        self.root.title("Cadastro de Livros - Biblioteca Digital")
+        self.root.title("Gerenciamento de Livros - Biblioteca Digital")
         self.center_window()
 
     @handle_errors
@@ -50,7 +50,7 @@ class BooksView(BaseView):
 
         title_label = self.create_label(
             header_frame,
-            text="📚 Cadastro de Livros",
+            text="📚 Gerenciamento de Livros",
             font=Fonts.TITLE,
             fg=ColorPalette.TEXT_PRIMARY,
             bg=ColorPalette.BACKGROUND
@@ -81,7 +81,7 @@ class BooksView(BaseView):
 
         self.create_label(
             form_frame,
-            text="Novo Livro",
+            text="Cadastrar Livro",
             font=Fonts.SUBTITLE,
             fg=ColorPalette.TEXT_PRIMARY,
             bg=ColorPalette.SURFACE
@@ -268,7 +268,7 @@ class BooksView(BaseView):
 
         self.create_label(
             footer_frame,
-            text="Sistema de Biblioteca Digital © 2025",
+            text="Biblioteca Digital - Sistema de Gerenciamento de Acervo Literário",
             font=Fonts.FOOTER,
             fg=ColorPalette.TEXT_SECONDARY,
             bg=ColorPalette.BACKGROUND

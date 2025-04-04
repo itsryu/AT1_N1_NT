@@ -3,10 +3,15 @@ import tkinter as tk
 from enum import Enum, auto
 from dataclasses import dataclass
 from views.base_view import BaseView
-from utils.helpers import handle_errors
-from utils.logger import Logger
-from utils.style import ColorPalette, Fonts
-from utils.__version__ import __version__
+from shared.helpers import handle_errors
+from shared.logger import Logger
+from shared.style import ColorPalette, Fonts
+from shared.__version__ import __version__
+from views.books_view import BooksView
+from views.users_view import UsersView
+from views.loans_view import LoansView
+from views.statistics_view import StatisticsView
+from datetime import datetime
 
 class MenuAction(Enum):
     BOOKS = auto()
@@ -82,25 +87,25 @@ class MainMenu(BaseView):
     def get_menu_buttons_config(self) -> Tuple[MenuButtonConfig, ...]:
         return (
             MenuButtonConfig(
-                text=" Cadastro de Livros",
+                text=" Gerenciamento de Livros",
                 action=MenuAction.BOOKS,
                 symbol="📖",
                 color=ColorPalette.SUCCESS
             ),
             MenuButtonConfig(
-                text=" Cadastro de Usuários",
+                text=" Gerenciamento de Usuários",
                 action=MenuAction.USERS,
                 symbol="👥",
                 color=ColorPalette.INFO
             ),
             MenuButtonConfig(
-                text=" Sistema de Empréstimos",
+                text=" Gerenciamento de Empréstimos",
                 action=MenuAction.LOANS,
                 symbol="🔄",
                 color=ColorPalette.WARNING
             ),
             MenuButtonConfig(
-                text=" Estatísticas e Relatórios",
+                text=" Estatísticas & Relatórios",
                 action=MenuAction.STATS,
                 symbol="📊",
                 color=ColorPalette.PURPLE
@@ -188,7 +193,7 @@ class MainMenu(BaseView):
         
         version_label = self.create_label(
             footer_frame,
-            text=f"Versão {__version__} © 2025 Biblioteca Digital",
+            text=f"Versão {__version__} © {datetime.now().strftime("%Y")} Biblioteca Digital",
             font=Fonts.FOOTER,
             fg=ColorPalette.TEXT_SECONDARY,
             bg=ColorPalette.BACKGROUND
@@ -197,22 +202,18 @@ class MainMenu(BaseView):
         
     @handle_errors
     def open_books_view(self) -> None:
-        from views.books_view import BooksView
         self.navigate_to_view(BooksView)
         
     @handle_errors
     def open_users_view(self) -> None:
-        from views.users_view import UsersView
         self.navigate_to_view(UsersView)
         
     @handle_errors
     def open_loans_view(self) -> None:
-        from views.loans_view import LoansView
         self.navigate_to_view(LoansView)
         
     @handle_errors
     def open_statistics_view(self) -> None:
-        from views.statistics_view import StatisticsView
         self.navigate_to_view(StatisticsView)
         
     @handle_errors

@@ -1,5 +1,6 @@
 from typing import NamedTuple, Tuple
 from dataclasses import dataclass
+import logging
 import tkinter.font as tkfont
 import tkinter as tk
 
@@ -7,6 +8,20 @@ class Color(NamedTuple):
     normal: str
     hover: str
     active: str
+
+class ColorFormatter(logging.Formatter):
+    COLORS = {
+        "DEBUG": "\033[94m",    # Blue
+        "INFO": "\033[92m",     # Green
+        "WARNING": "\033[93m",  # Yellow
+        "ERROR": "\033[91m",    # Red
+        "CRITICAL": "\033[95m", # Magenta
+    }
+    RESET = "\033[0m"
+
+    def format(self, record: logging.LogRecord) -> str:
+        color = self.COLORS.get(record.levelname, self.RESET)
+        return f"{color}{super().format(record)}{self.RESET}"
 
 @dataclass
 class ColorPalette:
@@ -78,6 +93,19 @@ class Fonts:
     BODY: Tuple[str, int, str] = ("Segoe UI", 11, "normal")
     FOOTER: Tuple[str, int, str] = ("Segoe UI", 9, "italic")
     
+    BODY_BOLD: Tuple[str, int, str] = ("Segoe UI", 11, "bold")
+    BODY_ITALIC: Tuple[str, int, str] = ("Segoe UI", 11, "italic")
+    
+    SMALL: Tuple[str, int, str] = ("Segoe UI", 9, "normal")
+    SMALL_BOLD: Tuple[str, int, str] = ("Segoe UI", 9, "bold")
+    SMALL_ITALIC: Tuple[str, int, str] = ("Segoe UI", 9, "italic")
+    
+    LARGE: Tuple[str, int, str] = ("Segoe UI", 14, "normal")
+    LARGE_BOLD: Tuple[str, int, str] = ("Segoe UI", 14, "bold")
+    
+    MONOSPACE: Tuple[str, int, str] = ("Consolas", 11, "normal")
+    MONOSPACE_BOLD: Tuple[str, int, str] = ("Consolas", 11, "bold")
+
     @staticmethod
     def load_custom_fonts(root: tk.Tk) -> None:
         try:
@@ -86,6 +114,21 @@ class Fonts:
             if "Roboto" in font_families:
                 Fonts.TITLE = ("Roboto", 24, "bold")
                 Fonts.SUBTITLE = ("Roboto", 14, "italic")
+                Fonts.BUTTON = ("Roboto", 12, "bold")
+                Fonts.BODY = ("Roboto", 11, "normal")
+                Fonts.FOOTER = ("Roboto", 9, "italic")
+                
+                Fonts.BODY_BOLD = ("Roboto", 11, "bold")
+                Fonts.BODY_ITALIC = ("Roboto", 11, "italic")
+                Fonts.SMALL = ("Roboto", 9, "normal")
+                Fonts.SMALL_BOLD = ("Roboto", 9, "bold")
+                Fonts.SMALL_ITALIC = ("Roboto", 9, "italic")
+                Fonts.LARGE = ("Roboto", 14, "normal")
+                Fonts.LARGE_BOLD = ("Roboto", 14, "bold")
+                
+            if "Fira Code" in font_families:
+                Fonts.MONOSPACE = ("Fira Code", 11, "normal")
+                Fonts.MONOSPACE_BOLD = ("Fira Code", 11, "bold")
                 
         except Exception as e:
             print(f"Erro ao carregar fontes personalizadas: {e}")

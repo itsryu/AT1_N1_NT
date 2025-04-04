@@ -14,7 +14,7 @@ class User:
 
     def __post_init__(self) -> None:
         if self.Type not in self.ALLOWED_TYPES:
-            raise ValueError(f"Invalid user type. It must be one of: {self.ALLOWED_TYPES}")
+            raise ValueError(f"Tipo inválido, o tipo deve ser um dos tipos válidos: {self.ALLOWED_TYPES}")
 
     def to_dict(self) -> Dict[str, Any]:
         return {

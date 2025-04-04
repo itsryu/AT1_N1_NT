@@ -1,16 +1,15 @@
 from typing import List, Optional, Tuple
 import tkinter as tk
 from tkinter import ttk, simpledialog, messagebox
-from models.loan import Loan
-from controllers.loans_controller import LoansController
-from controllers.books_controller import BooksController
-from controllers.users_controller import UsersController
-from utils.helpers import handle_errors, format_date
-from utils.logger import Logger
-from utils.style import ColorPalette, Fonts
+from core.models.loan import Loan
+from core.controllers.loans_controller import LoansController
+from core.controllers.books_controller import BooksController
+from core.controllers.users_controller import UsersController
+from shared.helpers import handle_errors, format_date
+from shared.logger import Logger
+from shared.style import ColorPalette, Fonts
 from views.base_view import BaseView
 import datetime 
-
 
 class LoansView(BaseView):
     @handle_errors
@@ -32,7 +31,7 @@ class LoansView(BaseView):
 
     @handle_errors
     def setup_window(self) -> None:
-        self.root.title("Sistema de Empréstimos - Biblioteca Digital")
+        self.root.title("Gerenciamento de Empréstimos - Biblioteca Digital")
         self.center_window()
 
     @handle_errors
@@ -57,7 +56,7 @@ class LoansView(BaseView):
         
         self.create_label(
             title_frame,
-            text="📚 Sistema de Empréstimos",
+            text="📚 Gerenciamento de Empréstimos",
             font=Fonts.TITLE,
             fg=ColorPalette.TEXT_PRIMARY,
             bg=ColorPalette.BACKGROUND
@@ -173,7 +172,6 @@ class LoansView(BaseView):
     @handle_errors
     def create_loans_treeview(self, parent: tk.Widget) -> ttk.Treeview:
         columns = [
-            ("ID", 50, "center"),
             ("ISBN", 120, "center"),
             ("Título", 200, "w"),
             ("ID Usuário", 100, "center"),
@@ -189,7 +187,6 @@ class LoansView(BaseView):
     @handle_errors
     def create_returns_treeview(self, parent: tk.Widget) -> ttk.Treeview:
         columns = [
-            ("ID", 50, "center"),
             ("ISBN", 120, "center"),
             ("Título", 200, "w"),
             ("ID Usuário", 100, "center"),
@@ -246,7 +243,7 @@ class LoansView(BaseView):
 
         self.create_label(
             footer_frame,
-            text="Sistema de Biblioteca Digital © 2025",
+            text="Biblioteca Digital - Sistema de Gerenciamento de Acervo Literário",
             font=Fonts.FOOTER,
             fg=ColorPalette.TEXT_SECONDARY,
             bg=ColorPalette.BACKGROUND
@@ -274,17 +271,16 @@ class LoansView(BaseView):
         books = {b.ISBN: b.Title for b in self.books_controller.list_all()}
         users = {u.ID: u.Name for u in self.users_controller.list_all()}
 
-        for idx, loan in enumerate(loans, 1):
+        for loan in loans:
             self.active_loans_tree.insert(
                 "", "end",
                 values=(
-                    idx,
                     loan.ISBN,
                     books.get(loan.ISBN, "Desconhecido"),
                     loan.UserID,
                     users.get(loan.UserID, "Desconhecido"),
                     format_date(loan.LoanDate),
-                    "Ativo" if not loan.ReturnDate else "Devolvido"
+                    "Atrasado" if self.is_late(loan) else "Ativo"
                 ),
                 tags=("late",) if self.is_late(loan) else ()
             )
@@ -304,11 +300,10 @@ class LoansView(BaseView):
         books = {b.ISBN: b.Title for b in self.books_controller.list_all()}
         users = {u.ID: u.Name for u in self.users_controller.list_all()}
 
-        for idx, loan in enumerate(returns, 1):
+        for loan in returns:
             self.returns_tree.insert(
                 "", "end",
                 values=(
-                    idx,
                     loan.ISBN,
                     books.get(loan.ISBN, "Desconhecido"),
                     loan.UserID,
@@ -402,8 +397,7 @@ class LoansView(BaseView):
             return
 
         item = self.active_loans_tree.item(selected[0])
-        isbn = item["values"][1]
-        user_id = item["values"][3]
+        isbn, user_id = map(str, item["values"][1:4:2])
 
         try:
             if self.controller.register_return(isbn, user_id):
@@ -412,7 +406,7 @@ class LoansView(BaseView):
             else:
                 self.show_error("Não foi possível registrar a devolução!")
         except Exception as e:
-            Logger.error(f"Erro ao registrar devolução: {str(e)}")
+            Logger.error(f"Erro ao registrar devolução: {e}")
             self.show_error("Erro ao registrar devolução!")
 
     @handle_errors
@@ -422,11 +416,11 @@ class LoansView(BaseView):
             self.load_active_loans()
             return
 
-        loans = [
-            loan for loan in self.controller.list_active()
-            if term in loan.ISBN.lower() or term in loan.UserID.lower()
-        ]
-        self.display_active_loans(loans)
+        loans = filter(
+            lambda loan: term in str(loan.ISBN).lower() or term in str(loan.UserID).lower(),
+            self.controller.list_active()
+        )
+        self.display_active_loans(list(loans))
 
     @handle_errors
     def show_loan_details(self, tree: ttk.Treeview) -> None:
@@ -435,14 +429,18 @@ class LoansView(BaseView):
             return
 
         item = tree.item(selected[0])
-        isbn = item["values"][1]
-        user_id = item["values"][3]
+        isbn = str(item["values"][0])
+        user_id = str(item["values"][2])
 
         try:
             book = self.books_controller.search_term(isbn)[0]
-            user = next(u for u in self.users_controller.list_all() if u.ID == user_id)
+            user = next(u for u in self.users_controller.list_all() if str(u.ID) == user_id)
             loan = next(l for l in self.controller.list_all() 
-                      if l.ISBN == isbn and l.UserID == user_id)
+                    if str(l.ISBN) == isbn and str(l.UserID) == user_id)
+
+            expected_return_date = loan.LoanDate + datetime.timedelta(days=30)
+            is_late = datetime.datetime.now() > expected_return_date and not loan.ReturnDate
+            days_late = (datetime.datetime.now() - expected_return_date).days if is_late else 0
 
             details = (
                 f"Livro:\n"
@@ -455,11 +453,14 @@ class LoansView(BaseView):
                 f"Tipo: {user.Type}\n\n"
                 f"Empréstimo:\n"
                 f"Data: {format_date(loan.LoanDate)}\n"
-                f"Status: {'Devolvido' if loan.ReturnDate else 'Ativo'}\n"
+                f"Status: {'Devolvido' if loan.ReturnDate else ('Atrasado' if is_late else 'Ativo')}\n"
+                f"Devolução esperada: {expected_return_date.strftime('%d/%m/%Y')}\n"
             )
 
             if loan.ReturnDate:
-                details += f"Data Devolução: {loan.ReturnDate.strftime("%d/%m/%Y %H:%M")}\n"
+                details += f"Data Devolução: {loan.ReturnDate.strftime('%d/%m/%Y %H:%M')}\n"
+            elif is_late:
+                details += f"Atraso: {days_late} dia(s)\n"
 
             messagebox.showinfo("Detalhes do Empréstimo", details)
         except Exception as e:

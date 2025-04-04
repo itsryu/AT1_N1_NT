@@ -1,6 +1,12 @@
+import sys
+from pathlib import Path
 from tkinter import Tk
+
+PROJECT_ROOT = Path(__file__).parent.parent
+sys.path.append(str(PROJECT_ROOT))
+
 from views.main_menu import MainMenu
-from utils.logger import Logger
+from shared.logger import Logger
 
 def main() -> None:
     try:

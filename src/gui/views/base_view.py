@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import messagebox, ttk
 from abc import ABC, abstractmethod
 from typing import Any, List, Optional, Callable
-from utils.helpers import handle_errors
+from shared.helpers import handle_errors
 
 class BaseView(ABC):
     BUTTON_WIDTH = 25

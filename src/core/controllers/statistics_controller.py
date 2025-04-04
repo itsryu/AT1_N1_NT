@@ -1,11 +1,10 @@
 from typing import Dict, List, Tuple, DefaultDict, Any
 from collections import defaultdict
 from datetime import datetime, timedelta
-from controllers.books_controller import BooksController
-from controllers.users_controller import UsersController
-from controllers.loans_controller import LoansController
-from models.loan import Loan
-
+from core.controllers.books_controller import BooksController
+from core.controllers.users_controller import UsersController
+from core.controllers.loans_controller import LoansController
+from core.models.loan import Loan
 
 class StatisticsController:
     def __init__(self) -> None:
