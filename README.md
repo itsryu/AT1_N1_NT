@@ -10,6 +10,7 @@
   <li>Operadores lógicos e booleanos</li>
   <li>Tratamento de arquivos para persistência dos dados</li>
   <li>Estruturação do código seguindo o padrão MVC</li>
+  <li>Duas interfaces: GUI (gráfica) e CLI (linha de comando)</li>
 </ul>
 
 <h2>📚 Funcionalidades do Sistema</h2>
@@ -50,6 +51,7 @@
 <ul>
   <li><strong>Linguagem:</strong> Python</li>
   <li><strong>Interface Gráfica:</strong> Tkinter</li>
+  <li><strong>Interface CLI:</strong> Rich</li>
   <li><strong>Estrutura:</strong> Padrão MVC (Model-View-Controller)</li>
   <li><strong>Controle de Versão:</strong> Git</li>
   <li><strong>IDE:</strong> Visual Studio Code</li>
@@ -58,29 +60,37 @@
 <h2>📂 Organização do Projeto</h2>
 <pre>
 AT1_N1_NT/
-├── controllers/          # Lógica de controle e intermedia a comunicação entre models e views
-├── models/               # Estruturas de dados
-|   ├── book.py
-|   ├── loan.py
-│   └── user.py
-├── views/                # Interfaces gráficas (telas)
-|   ├── main_menu.py
-│   ├── books_view.py
-│   ├── users_view.py
-│   ├── loans_view.py
-│   └── statistics_view.py
-├── main.py               # Ponto de entrada
-└── README.md             # Documentação
+├── src/
+│   ├── core/               # Lógica principal compartilhada
+│   │   ├── controllers/    # Regras de negócio
+│   │   └── models/         # Modelos de dados
+│   ├── gui/                # Interface gráfica
+│   │   ├── views/          # Telas da aplicação
+│   │   └── app.py          # Ponto de entrada GUI
+│   ├── cli/                # Interface de linha de comando
+│   │   ├── commands/       # Implementação dos comandos
+|   |   ├── views/          # Telas do console
+│   │   └── app.py          # Ponto de entrada CLI
+│   └── shared/             # Utilitários compartilhados
+├── requirements.txt        # Dependências do projeto
+├── README.md               # Documentação
+└── CHANGELOG.md            # Histórico de mudanças
 </pre>
 
 <h2>🚀 Instalação e Execução</h2>
 
 <h3>1. Clone o repositório:</h3>
-<pre><code>git clone https://github.com/itsryu/AT1_N1_NT.git
-cd AT1_N1_NT</code></pre>
+<pre><code>1. git clone https://github.com/itsryu/AT1_N1_NT.git<br>
+2. cd AT1_N1_NT</code></pre>
 
-<h3>2. Execute a aplicação:</h3>
-<pre><code>python main.py</code></pre>
+<h3>2. Instale as dependências:</h3>
+<pre><code>pip install -r requirements.txt</code></pre>
+
+<h3>3. Execução da Interface Gráfica (GUI):</h3>
+<pre><code>python src/gui/app.py</code></pre>
+
+<h3>4. Execução da Interface de Linha de Comando (CLI):</h3>
+<pre><code>python src/cli/app.py</code></pre>
 
 <h2>👥 Integrantes do Grupo</h2>
 <div align="center">
@@ -112,8 +122,6 @@ cd AT1_N1_NT</code></pre>
         </tr>
     </table>
 </div>
-
-</details>
 
 <h2>📜 Licença</h2>
 <p>Este projeto está licenciado sob a <a href="LICENSE">MIT License</a>.</p>

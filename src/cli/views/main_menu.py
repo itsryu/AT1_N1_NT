@@ -51,5 +51,4 @@ class MainMenu(BaseMenu):
         input("Pressione Enter para continuar...")
     
     def _exit(self):
-        self.console.print("\n[green]Até logo![/green]")
         raise SystemExit

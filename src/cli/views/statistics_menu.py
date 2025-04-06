@@ -12,9 +12,11 @@ class StatisticsMenu(BaseMenu):
         self.commands = StatisticsCommand()
 
         self.options = {
-            "1": ("Listar Livros Por Categoria", self.commands.show_books_by_category),
-            "2": ("Listar Empréstimos Por Tipo de Usuário", self.commands.show_loans_by_user_type),
-            "3": ("Listar Livros Mais Emprestados", self.commands.show_most_loaned_books),
-            "4": ("Gerar Relatório em PDF", self.commands.generate_pdf_report),
-            "0": ("Voltar ao Menu Principal", self.back),
+            "1": ("Livros por Categoria (Tabela)", lambda: self.commands.show_books_by_category('table')),
+            "2": ("Livros por Categoria (Gráfico de Barras)", lambda: self.commands.show_books_by_category('bar')),
+            "3": ("Empréstimos por Tipo de Usuário (Tabela)", lambda: self.commands.show_loans_by_user_type('table')),
+            "4": ("Empréstimos por Tipo de Usuário (Gráfico)", lambda: self.commands.show_loans_by_user_type('bar')),
+            "5": ("Livros Mais Emprestados", self.commands.show_most_loaned_books),
+            "6": ("Gerar Relatório PDF", self.commands.generate_pdf_report),
+            "0": ("Voltar", self.back)
         }

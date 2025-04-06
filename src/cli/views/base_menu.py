@@ -18,8 +18,12 @@ class BaseMenu:
             self.terminal.clear()
             self._show_menu()
             choice = self._get_choice()
+
             if choice in self.options:
-                self.options[choice][1]()
+                _, action = self.options[choice]
+
+                if action:
+                    action()
 
     def _show_menu(self):
         menu_items = [
@@ -35,6 +39,7 @@ class BaseMenu:
             width=60,
             padding=(1, 4)
         )
+        
         self.console.print(panel, justify="center")
         self.console.print(f"[dim]{self.footer}[/dim]", justify="center")
 

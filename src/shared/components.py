@@ -412,22 +412,21 @@ class PDFReport:
     
     def _create_metrics_table(self, stats: dict) -> Table:
         data = [
-            ["📚", "Total de Livros", str(stats.get("total_books", 0))],
-            ["👥", "Total de Usuários", str(stats.get("total_users", 0))],
-            ["🔄", "Empréstimos Ativos", str(stats.get("active_loans", 0))],
-            ["✅", "Empréstimos Finalizados", str(stats.get("completed_loans", 0))],
-            ["📈", "Média por Usuário", f"{stats.get('avg_loans_per_user', 0):.1f}"]
+            ["Total de Livros", str(stats.get("total_books", 0))],
+            ["Total de Usuários", str(stats.get("total_users", 0))],
+            ["Empréstimos Ativos", str(stats.get("active_loans", 0))],
+            ["Empréstimos Finalizados", str(stats.get("completed_loans", 0))],
+            ["Média por Usuário", f"{stats.get('avg_loans_per_user', 0):.1f}"]
         ]
         
-        table = Table(data, colWidths=[1.5*cm, 8*cm, 3*cm])
+        table = Table(data, colWidths=[8*cm, 3*cm])
         
         table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ('FONTNAME', (0, 0), (-1, -1), 'Roboto' if self.font_available else 'Helvetica'),
-            ('FONTSIZE', (0, 0), (0, -1), 14),
-            ('FONTSIZE', (1, 0), (2, -1), 10),
-            ('FONTNAME', (2, 0), (2, -1), 'Roboto-Bold' if self.font_available else 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('FONTNAME', (1, 0), (1, -1), 'Roboto-Bold' if self.font_available else 'Helvetica-Bold'),
             ('TEXTCOLOR', (0, 0), (-1, -1), ColorPalette.DARK),
             ('BACKGROUND', (0, 0), (-1, 0), ColorPalette.LIGHT),
             ('BOX', (0, 0), (-1, -1), 0.5, ColorPalette.GRAY),
