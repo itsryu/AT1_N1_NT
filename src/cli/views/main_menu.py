@@ -7,9 +7,9 @@ from cli.views.statistics_menu import StatisticsMenu
 class MainMenu(BaseMenu):
     def __init__(self):
         super().__init__()
+        
         self.title = "📚 Biblioteca Digital"
         
-
         self.options = {
             "1": ("Gerenciamento de Livros", self._show_book_menu),
             "2": ("Gerenciamento de Usuários", self._show_user_menu),
@@ -51,4 +51,5 @@ class MainMenu(BaseMenu):
         input("Pressione Enter para continuar...")
     
     def _exit(self):
+        self.console.print("\n[green]Até logo![/green]")
         raise SystemExit

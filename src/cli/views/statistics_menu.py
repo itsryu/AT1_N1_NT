@@ -13,7 +13,7 @@ class StatisticsMenu(BaseMenu):
 
         self.options = {
             "1": ("Livros por Categoria (Tabela)", lambda: self.commands.show_books_by_category('table')),
-            "2": ("Livros por Categoria (Gráfico de Barras)", lambda: self.commands.show_books_by_category('bar')),
+            "2": ("Livros por Categoria (Gráfico)", lambda: self.commands.show_books_by_category('bar')),
             "3": ("Empréstimos por Tipo de Usuário (Tabela)", lambda: self.commands.show_loans_by_user_type('table')),
             "4": ("Empréstimos por Tipo de Usuário (Gráfico)", lambda: self.commands.show_loans_by_user_type('bar')),
             "5": ("Livros Mais Emprestados", self.commands.show_most_loaned_books),

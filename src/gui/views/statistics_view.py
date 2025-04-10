@@ -1,7 +1,6 @@
 from typing import Dict, List, Tuple
 import tkinter as tk
 from tkinter import ttk
-from datetime import datetime
 
 from core.controllers.statistics_controller import StatisticsController
 from shared.components import PDFReport
@@ -328,7 +327,7 @@ class StatisticsView(BaseView):
 
     @handle_errors
     def show_context_menu(self, event: tk.Event, tree: ttk.Treeview) -> None:
-        """Exibe o menu de contexto para copiar valores específicos"""
+        
         item = tree.identify_row(event.y)
         if not item:
             return

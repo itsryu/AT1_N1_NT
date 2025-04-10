@@ -11,11 +11,11 @@ class Color(NamedTuple):
 
 class ColorFormatter(logging.Formatter):
     COLORS = {
-        "DEBUG": "\033[94m",    # Blue
-        "INFO": "\033[92m",     # Green
-        "WARNING": "\033[93m",  # Yellow
-        "ERROR": "\033[91m",    # Red
-        "CRITICAL": "\033[95m", # Magenta
+        "DEBUG": "\033[94m",    
+        "INFO": "\033[92m",     
+        "WARNING": "\033[93m",  
+        "ERROR": "\033[91m",    
+        "CRITICAL": "\033[95m", 
     }
     RESET = "\033[0m"
 
@@ -47,13 +47,13 @@ class ColorPalette:
     @staticmethod
     def get_hover_color(base_color: str) -> str:
         color_map = {
-            "#3498db": "#2980b9",  # PRIMARY
-            "#2ecc71": "#27ae60",  # SECONDARY
-            "#27ae60": "#219653",  # SUCCESS
-            "#2980b9": "#1f618d",  # INFO
-            "#f39c12": "#e67e22",  # WARNING
-            "#e74c3c": "#c0392b",  # DANGER
-            "#9b59b6": "#8e44ad",  # PURPLE
+            "#3498db": "#2980b9",  
+            "#2ecc71": "#27ae60",  
+            "#27ae60": "#219653",  
+            "#2980b9": "#1f618d",  
+            "#f39c12": "#e67e22",  
+            "#e74c3c": "#c0392b",  
+            "#9b59b6": "#8e44ad",  
         }
         return color_map.get(base_color, ColorPalette.darken_color(base_color, 15))
     
